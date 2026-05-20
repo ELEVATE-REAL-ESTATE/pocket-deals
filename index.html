@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 <style>
 :root {
   --cream: #F4F0E6;
@@ -357,6 +358,67 @@ body.dark-mode .btn-ghost:hover { color: var(--gold); }
 .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--cream); padding: 14px 24px; font-size: 13px; opacity: 0; transition: all 0.3s ease; z-index: 200; pointer-events: none; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* PHASE 3 — PHOTOS & GALERIE */
+.photo-upload-zone { border: 2px dashed var(--line); background: var(--paper); padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.photo-upload-zone:hover { border-color: var(--accent); background: var(--cream-deep); }
+.photo-upload-zone .upload-icon { width: 48px; height: 48px; margin: 0 auto 16px; color: var(--muted); }
+.photo-upload-zone .upload-title { font-family: var(--font-display); font-size: 20px; font-weight: 400; margin-bottom: 6px; letter-spacing: -0.01em; }
+.photo-upload-zone .upload-sub { font-size: 12px; color: var(--muted); }
+
+.photo-config-warn { background: #FFF8E1; border: 1px solid var(--gold); padding: 16px 20px; font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; }
+.photo-config-warn strong { color: var(--accent); }
+.photo-config-warn code { font-family: var(--font-mono); font-size: 11px; background: var(--cream-deep); padding: 2px 6px; }
+
+.photo-or-divider { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
+.photo-or-divider::before, .photo-or-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.photo-or-divider span { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+
+.photo-url-add { display: flex; gap: 8px; }
+.photo-url-add input { flex: 1; background: var(--paper); border: 1px solid var(--line); padding: 12px 14px; font-size: 13px; font-family: var(--font-mono); }
+.photo-url-add input:focus { outline: none; border-color: var(--ink); }
+.photo-url-add button { background: var(--ink); color: var(--cream); padding: 0 20px; font-size: 12px; font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+.photo-tile { position: relative; aspect-ratio: 4 / 3; background: var(--cream-deep); overflow: hidden; cursor: move; }
+.photo-tile img { width: 100%; height: 100%; object-fit: cover; }
+.photo-tile.is-cover::before { content: 'Couverture'; position: absolute; top: 8px; left: 8px; background: var(--ink); color: var(--cream); padding: 4px 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; z-index: 2; }
+.photo-tile .tile-actions { position: absolute; inset: 0; background: rgba(14,12,8,0.65); display: flex; align-items: center; justify-content: center; gap: 8px; opacity: 0; transition: opacity 0.15s; }
+.photo-tile:hover .tile-actions { opacity: 1; }
+.photo-tile .tile-actions button { width: 32px; height: 32px; background: var(--cream); color: var(--ink); display: flex; align-items: center; justify-content: center; transition: transform 0.15s; }
+.photo-tile .tile-actions button:hover { transform: scale(1.1); }
+.photo-tile .tile-actions button.danger:hover { background: var(--danger); color: var(--cream); }
+
+/* DOSSIER GALLERY */
+.deal-hero-image { width: 100%; aspect-ratio: 21 / 9; max-height: 480px; background: var(--cream-deep); overflow: hidden; margin-bottom: 0; position: relative; }
+.deal-hero-image img { width: 100%; height: 100%; object-fit: cover; }
+.deal-hero-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(14,12,8,0.4) 100%); pointer-events: none; }
+
+.dossier-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; }
+.dossier-gallery .gallery-item { aspect-ratio: 4 / 3; overflow: hidden; cursor: zoom-in; background: var(--cream-deep); transition: opacity 0.15s; }
+.dossier-gallery .gallery-item:hover { opacity: 0.85; }
+.dossier-gallery .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.dossier-gallery .gallery-item:hover img { transform: scale(1.04); }
+
+/* LIGHTBOX */
+.lightbox { position: fixed; inset: 0; background: rgba(14,12,8,0.96); z-index: 300; display: flex; align-items: center; justify-content: center; padding: 32px; }
+.lightbox img { max-width: 95%; max-height: 90vh; object-fit: contain; }
+.lightbox .lb-close { position: absolute; top: 24px; right: 24px; width: 44px; height: 44px; background: rgba(244,240,230,0.1); color: var(--cream); display: flex; align-items: center; justify-content: center; }
+.lightbox .lb-close:hover { background: var(--cream); color: var(--ink); }
+.lightbox .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; background: rgba(244,240,230,0.08); color: var(--cream); display: flex; align-items: center; justify-content: center; }
+.lightbox .lb-nav:hover { background: var(--cream); color: var(--ink); }
+.lightbox .lb-nav.prev { left: 24px; }
+.lightbox .lb-nav.next { right: 24px; }
+.lightbox .lb-counter { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; color: rgba(244,240,230,0.6); }
+
+/* Cover preview in admin deal list */
+.deal-row .deal-thumb { width: 48px; height: 48px; background: var(--gold); margin-right: 12px; overflow: hidden; flex-shrink: 0; display: inline-block; vertical-align: middle; }
+.deal-row .deal-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+@media (max-width: 900px) {
+  .photo-grid { grid-template-columns: repeat(2, 1fr); }
+  .dossier-gallery { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* RESPONSIVE */
 @media (max-width: 900px) {
   .hero-grid { grid-template-columns: 1fr; gap: 48px; }
@@ -402,6 +464,19 @@ const STORAGE_KEY_AUTH = 'elevate_dealroom_auth_v1';
 const STORAGE_KEY_SIGS_PREFIX = 'elevate_dealroom_sigs_';
 const STORAGE_KEY_SIGNED_PREFIX = 'elevate_dealroom_signed_';
 const ADMIN_PASSWORD = 'elevate2026'; // À modifier — voir admin > paramètres
+
+// =============================================
+// CONFIG CLOUDINARY — PHASE 3 (Photos)
+// =============================================
+// 1. Créer un compte gratuit sur https://cloudinary.com (25GB gratuit)
+// 2. Dans le Dashboard, copier ton "Cloud name" (en haut)
+// 3. Settings → Upload → Upload presets → Add upload preset
+//    → Signing Mode: "Unsigned" → Save
+//    → Copier le "Upload preset name"
+// 4. Remplacer les deux valeurs ci-dessous :
+const CLOUDINARY_CLOUD_NAME = 'dhnae7dnu';
+const CLOUDINARY_UPLOAD_PRESET = 'efgmacqq';
+const CLOUDINARY_CONFIGURED = CLOUDINARY_CLOUD_NAME !== 'TON_CLOUD_NAME' && CLOUDINARY_UPLOAD_PRESET !== 'TON_UPLOAD_PRESET';
 
 const ASSET_TYPES = [
   'Multifamilial', 'RPA (résidence aînés)', 'Hôtellerie', 'Commercial', 'Industriel', 'Terrain', 'Mixte', 'Autre'
@@ -857,6 +932,8 @@ function openWizard(existingDeal = null) {
     valueAdd: '', strategy: '',
     promiseExpiry: '', financingNotes: '',
     documents: [],
+    photos: [],
+    coverIndex: 0,
     contactName: '', contactOrg: 'Investissement Elevate inc.', contactEmail: '', contactPhone: '',
     coverImage: '',
     step: 0,
@@ -881,6 +958,7 @@ function renderWizard() {
     { title: 'Caractéristiques', sub: 'L\'actif lui-même — taille, état, occupation.' },
     { title: 'Financiers', sub: 'Les chiffres qui matérialisent l\'opportunité.' },
     { title: 'Thèse & conditions', sub: 'Pourquoi ce deal, et sous quels termes.' },
+    { title: 'Photos & visuels', sub: 'Les images valent mille mots — première image = couverture.' },
     { title: 'Documents & contact', sub: 'Documents disponibles et personne ressource.' },
     { title: 'Partage', sub: 'Ton lien est prêt à être envoyé.' }
   ];
@@ -892,8 +970,9 @@ function renderWizard() {
   else if (s === 1) body = wizardStep1();
   else if (s === 2) body = wizardStep2();
   else if (s === 3) body = wizardStep3();
-  else if (s === 4) body = wizardStep4();
-  else if (s === 5) body = wizardStep5();
+  else if (s === 4) body = wizardStepPhotos();
+  else if (s === 5) body = wizardStep4();
+  else if (s === 6) body = wizardStep5();
 
   backdrop.innerHTML = `
     <div class="modal">
@@ -914,10 +993,10 @@ function renderWizard() {
         </div>
         ${body}
       </div>
-      ${s < 5 ? `
+      ${s < 6 ? `
         <div class="modal-foot">
           ${s > 0 ? `<button class="btn btn-ghost" onclick="wizardBack()">← Précédent</button>` : `<div></div>`}
-          <button class="btn btn-primary" onclick="wizardNext()">${s === 4 ? 'Générer le lien' : 'Continuer'} ${icons.arrow}</button>
+          <button class="btn btn-primary" onclick="wizardNext()">${s === 5 ? 'Générer le lien' : 'Continuer'} ${icons.arrow}</button>
         </div>
       ` : `
         <div class="modal-foot">
@@ -1123,6 +1202,161 @@ function wizardStep3() {
   `;
 }
 
+function wizardStepPhotos() {
+  const photos = wizardState.photos || [];
+  const coverIdx = wizardState.coverIndex || 0;
+
+  let configWarn = '';
+  if (!CLOUDINARY_CONFIGURED) {
+    configWarn = `
+      <div class="photo-config-warn">
+        <strong>⚙️ Configuration Cloudinary requise</strong> pour l'upload direct.<br>
+        En attendant, tu peux quand même <strong>coller des liens d'images</strong> (ex: Imgur, Dropbox, MLS) ci-dessous.<br>
+        <small>Pour activer l'upload : édite <code>index.html</code>, remplace <code>TON_CLOUD_NAME</code> et <code>TON_UPLOAD_PRESET</code>. Voir README.</small>
+      </div>
+    `;
+  }
+
+  return `
+    ${configWarn}
+
+    ${CLOUDINARY_CONFIGURED ? `
+      <div class="photo-upload-zone" onclick="openCloudinaryUpload()">
+        <div class="upload-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="upload-title">Téléverser des photos</div>
+        <div class="upload-sub">Cliquer pour sélectionner · ou glisser-déposer · jusqu'à 12 photos · max 10 MB chacune</div>
+      </div>
+
+      <div class="photo-or-divider"><span>OU</span></div>
+    ` : ''}
+
+    <div class="field" style="margin-bottom: 0;">
+      <label>Ajouter par URL</label>
+      <div class="photo-url-add">
+        <input type="text" id="photoUrlInput" placeholder="https://... (lien direct vers une image)" />
+        <button type="button" onclick="addPhotoByUrl()">Ajouter</button>
+      </div>
+      <div class="hint">Colle un lien direct (Imgur, Dropbox public, MLS, etc.).</div>
+    </div>
+
+    ${photos.length > 0 ? `
+      <div class="photo-grid">
+        ${photos.map((p, i) => `
+          <div class="photo-tile ${i === coverIdx ? 'is-cover' : ''}">
+            <img src="${escapeHtml(p.url)}" alt="" />
+            <div class="tile-actions">
+              ${i !== coverIdx ? `<button type="button" onclick="setCover(${i})" title="Définir comme couverture">⭐</button>` : ''}
+              <button type="button" class="danger" onclick="removePhoto(${i})" title="Retirer">🗑</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="hint" style="margin-top: 12px; text-align: center;">${photos.length} photo${photos.length > 1 ? 's' : ''} · La photo de couverture apparaît en bannière du dossier.</div>
+    ` : `
+      <div class="hint" style="text-align: center; margin-top: 24px; padding: 24px; border: 1px dashed var(--line);">Aucune photo ajoutée pour le moment. L'ajout de photos est <strong>optionnel</strong> mais fortement recommandé pour la conversion.</div>
+    `}
+  `;
+}
+
+function openCloudinaryUpload() {
+  if (!CLOUDINARY_CONFIGURED) {
+    showToast('Cloudinary non configuré — utilise l\'ajout par URL.');
+    return;
+  }
+  if (typeof cloudinary === 'undefined') {
+    showToast('Widget Cloudinary non chargé — vérifie ta connexion.');
+    return;
+  }
+  const widget = cloudinary.createUploadWidget({
+    cloudName: CLOUDINARY_CLOUD_NAME,
+    uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+    multiple: true,
+    maxFiles: 12,
+    maxFileSize: 10000000,
+    folder: 'elevate-deal-room',
+    sources: ['local', 'url', 'camera'],
+    clientAllowedFormats: ['image'],
+    language: 'fr',
+    text: {
+      fr: {
+        or: 'ou',
+        menu: { files: 'Mes fichiers', web: 'Lien web', camera: 'Caméra' },
+        local: { browse: 'Parcourir', dd_title_single: 'Glisser une photo ici', dd_title_multi: 'Glisser des photos ici', drop_title_single: 'Lâcher pour téléverser', drop_title_multiple: 'Lâcher pour téléverser' },
+        crop: { title: 'Recadrer', crop_btn: 'Recadrer', skip_btn: 'Passer', reset_btn: 'Réinitialiser', close_btn: 'Fermer', close_prompt: 'Êtes-vous sûr de vouloir fermer ?' }
+      }
+    },
+    styles: {
+      palette: {
+        window: '#FBF8F0',
+        sourceBg: '#F4F0E6',
+        windowBorder: '#D8CFB8',
+        tabIcon: '#6B2737',
+        inactiveTabIcon: '#6A6157',
+        menuIcons: '#0E0C08',
+        link: '#6B2737',
+        action: '#0E0C08',
+        inProgress: '#B89968',
+        complete: '#2D5A3D',
+        error: '#8B1A1A',
+        textDark: '#0E0C08',
+        textLight: '#FBF8F0'
+      },
+      fonts: { 'Instrument Sans, sans-serif': null }
+    }
+  }, (error, result) => {
+    if (error) {
+      console.error('Cloudinary error:', error);
+      return;
+    }
+    if (result && result.event === 'success') {
+      if (!wizardState.photos) wizardState.photos = [];
+      wizardState.photos.push({
+        url: result.info.secure_url,
+        publicId: result.info.public_id,
+        width: result.info.width,
+        height: result.info.height
+      });
+      renderWizard();
+    }
+  });
+  widget.open();
+}
+
+function addPhotoByUrl() {
+  const input = document.getElementById('photoUrlInput');
+  if (!input) return;
+  const url = input.value.trim();
+  if (!url) { showToast('Colle un lien d\'image.'); return; }
+  if (!/^https?:\/\//i.test(url)) { showToast('Le lien doit commencer par https://'); return; }
+  if (!wizardState.photos) wizardState.photos = [];
+  wizardState.photos.push({ url, publicId: null });
+  input.value = '';
+  renderWizard();
+}
+
+function removePhoto(idx) {
+  if (!wizardState.photos) return;
+  wizardState.photos.splice(idx, 1);
+  // Adjust cover index if needed
+  if (wizardState.coverIndex >= wizardState.photos.length) {
+    wizardState.coverIndex = Math.max(0, wizardState.photos.length - 1);
+  } else if (idx < wizardState.coverIndex) {
+    wizardState.coverIndex--;
+  }
+  renderWizard();
+}
+
+function setCover(idx) {
+  wizardState.coverIndex = idx;
+  renderWizard();
+}
+
 function wizardStep4() {
   return `
     <div class="field">
@@ -1228,7 +1462,8 @@ function wizardNext() {
       return;
     }
   }
-  if (wizardState.step === 4) {
+  // Step 4 is now Photos — optional, no validation
+  if (wizardState.step === 5) {
     if (!wizardState.contactName) {
       showToast('Le nom du contact est requis.');
       return;
@@ -1594,6 +1829,11 @@ function submitNDA(e, dealId) {
 // ============ DOSSIER ============
 function renderDealDossier(app, deal) {
   const today = new Date();
+  const photos = deal.photos || [];
+  const coverIdx = deal.coverIndex || 0;
+  const coverPhoto = photos[coverIdx];
+  const galleryPhotos = photos.filter((_, i) => i !== coverIdx);
+
   app.innerHTML = `
     ${renderHeader()}
     <main class="deal-page">
@@ -1604,6 +1844,12 @@ function renderDealDossier(app, deal) {
           <p class="deal-sub">${escapeHtml(deal.assetType || '')}${deal.city ? ' · ' + escapeHtml(deal.city) : ''}${deal.region ? ', ' + escapeHtml(deal.region) : ''}</p>
         </div>
       </section>
+
+      ${coverPhoto ? `
+        <div class="deal-hero-image">
+          <img src="${escapeHtml(coverPhoto.url)}" alt="${escapeHtml(deal.title)}" onclick="openLightbox(0)" style="cursor: zoom-in;" />
+        </div>
+      ` : ''}
 
       <section class="dossier-section">
         <div class="container">
@@ -1660,6 +1906,22 @@ function renderDealDossier(app, deal) {
                   ${deal.address ? `<div class="kv-cell" style="grid-column: span 2; border-right: none;"><span class="k">Adresse</span><span class="v">${escapeHtml(deal.address)}</span></div>` : ''}
                 </div>
               </div>
+
+              ${galleryPhotos.length > 0 ? `
+                <div class="dossier-block">
+                  <div class="block-head">
+                    <span class="block-num">—</span>
+                    <h3 class="block-title">Galerie</h3>
+                  </div>
+                  <div class="dossier-gallery">
+                    ${galleryPhotos.map((p, i) => {
+                      // Find original index in full photos array
+                      const originalIdx = photos.findIndex(orig => orig.url === p.url);
+                      return `<div class="gallery-item" onclick="openLightbox(${originalIdx})"><img src="${escapeHtml(p.url)}" alt="" loading="lazy" /></div>`;
+                    }).join('')}
+                  </div>
+                </div>
+              ` : ''}
 
               <div class="dossier-block">
                 <div class="block-head">
@@ -1733,6 +1995,67 @@ function renderDealDossier(app, deal) {
       </section>
     </main>
     ${renderFooter()}
+  `;
+
+  // Store photos for lightbox access
+  window._currentDealPhotos = photos;
+}
+
+// ============ LIGHTBOX ============
+let lightboxIdx = 0;
+
+function openLightbox(idx) {
+  const photos = window._currentDealPhotos || [];
+  if (!photos.length) return;
+  lightboxIdx = idx;
+  renderLightbox();
+}
+
+function closeLightbox() {
+  const lb = document.getElementById('lightbox');
+  if (lb) lb.remove();
+  document.removeEventListener('keydown', lightboxKeyHandler);
+}
+
+function lightboxKeyHandler(e) {
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowRight') lightboxNext();
+  if (e.key === 'ArrowLeft') lightboxPrev();
+}
+
+function lightboxNext() {
+  const photos = window._currentDealPhotos || [];
+  lightboxIdx = (lightboxIdx + 1) % photos.length;
+  renderLightbox();
+}
+
+function lightboxPrev() {
+  const photos = window._currentDealPhotos || [];
+  lightboxIdx = (lightboxIdx - 1 + photos.length) % photos.length;
+  renderLightbox();
+}
+
+function renderLightbox() {
+  const photos = window._currentDealPhotos || [];
+  if (!photos.length) return;
+  const photo = photos[lightboxIdx];
+
+  let lb = document.getElementById('lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'lightbox';
+    lb.className = 'lightbox';
+    lb.onclick = (e) => { if (e.target === lb) closeLightbox(); };
+    document.body.appendChild(lb);
+    document.addEventListener('keydown', lightboxKeyHandler);
+  }
+
+  lb.innerHTML = `
+    <button class="lb-close" onclick="closeLightbox()">${icons.x}</button>
+    ${photos.length > 1 ? `<button class="lb-nav prev" onclick="lightboxPrev()">←</button>` : ''}
+    <img src="${escapeHtml(photo.url)}" alt="" />
+    ${photos.length > 1 ? `<button class="lb-nav next" onclick="lightboxNext()">→</button>` : ''}
+    ${photos.length > 1 ? `<div class="lb-counter">${lightboxIdx + 1} / ${photos.length}</div>` : ''}
   `;
 }
 </script>
