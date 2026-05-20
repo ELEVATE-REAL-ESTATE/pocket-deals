@@ -389,7 +389,7 @@ body.dark-mode .btn-ghost:hover { color: var(--gold); }
 .photo-tile .tile-actions button.danger:hover { background: var(--danger); color: var(--cream); }
 
 /* DOSSIER GALLERY */
-.deal-hero-image { width: 100%; aspect-ratio: 21 / 9; max-height: 480px; background: var(--cream-deep); overflow: hidden; margin-bottom: 0; position: relative; }
+.deal-hero-image { width: 100%; aspect-ratio: 3 / 2; max-height: 620px; background: var(--cream-deep); overflow: hidden; margin-bottom: 0; position: relative; }
 .deal-hero-image img { width: 100%; height: 100%; object-fit: cover; }
 .deal-hero-image::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(14,12,8,0.4) 100%); pointer-events: none; }
 
@@ -1018,10 +1018,12 @@ function bindWizardInputs(scope) {
     el.addEventListener('input', () => {
       wizardState[key] = el.value;
       // Auto-calculate NOI and cap rate when relevant
-      if (['grossIncome', 'expenses', 'priceAsk'].includes(key)) {
+      if (['grossIncome', 'expenses', 'priceCession', 'priceAsk'].includes(key)) {
         const gi = Number(wizardState.grossIncome) || 0;
         const ex = Number(wizardState.expenses) || 0;
-        const px = Number(wizardState.priceAsk) || 0;
+        // Cap rate basé sur prix de cession (ce que le prospect paie réellement)
+        // Fallback sur priceAsk si pas encore de prix de cession
+        const px = Number(wizardState.priceCession) || Number(wizardState.priceAsk) || 0;
         if (gi && ex) {
           wizardState.noi = gi - ex;
           const noiEl = scope.querySelector('[data-bind="noi"]');
@@ -1167,7 +1169,7 @@ function wizardStep2() {
           <input type="number" step="0.01" data-bind="capRate" value="${wizardState.capRate}" placeholder="5.8" class="mono" />
           <span>%</span>
         </div>
-        <div class="hint">Basé sur NOI / prix demandé.</div>
+        <div class="hint">Basé sur NOI / prix de cession (ce que le prospect paie).</div>
       </div>
     </div>
   `;
@@ -1882,7 +1884,7 @@ function renderDealDossier(app, deal) {
                 <div class="fh-item">
                   <div class="fh-lbl">Cap rate</div>
                   <div class="fh-val">${deal.capRate ? deal.capRate : '—'}<span style="font-size:18px;">%</span></div>
-                  <div class="fh-sub">sur prix demandé</div>
+                  <div class="fh-sub">sur prix de cession</div>
                 </div>
                 <div class="fh-item">
                   <div class="fh-lbl">Plus-value</div>
