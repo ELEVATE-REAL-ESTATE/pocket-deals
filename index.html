@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Elevate Deal Room — Accès privé aux opportunités immobilières du portefeuille Elevate." />
+<title>Elevate Deal Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F4F0E6;
+  --cream-deep: #EBE4D2;
+  --paper: #FBF8F0;
+  --ink: #0E0C08;
+  --ink-soft: #2A251E;
+  --muted: #6A6157;
+  --line: #D8CFB8;
+  --line-soft: #E8E0CC;
+  --accent: #6B2737;
+  --accent-soft: #8B3A4A;
+  --gold: #B89968;
+  --gold-soft: #D4B785;
+  --success: #2D5A3D;
+  --danger: #8B1A1A;
+
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-body: 'Instrument Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--cream); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+img { max-width: 100%; display: block; }
+
+/* TYPOGRAPHY */
+.display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.02em; line-height: 1; font-variation-settings: "opsz" 144; }
+.display-italic { font-style: italic; font-variation-settings: "opsz" 144; }
+.mono { font-family: var(--font-mono); font-feature-settings: "ss01", "ss02"; }
+.eyebrow { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+.label { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+
+/* LAYOUT */
+.container { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+.container-tight { max-width: 880px; margin: 0 auto; padding: 0 32px; }
+.container-narrow { max-width: 640px; margin: 0 auto; padding: 0 32px; }
+
+/* TOP BAR */
+.topbar { border-bottom: 1px solid var(--line); background: var(--cream); position: sticky; top: 0; z-index: 50; backdrop-filter: blur(10px); }
+.topbar-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { width: 28px; height: 28px; background: var(--ink); color: var(--cream); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+.brand-name { font-family: var(--font-display); font-weight: 500; font-size: 18px; letter-spacing: -0.01em; }
+.brand-name .small { font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; font-family: var(--font-mono); color: var(--muted); display: block; margin-top: 2px; font-weight: 500; }
+.topbar-nav { display: flex; gap: 28px; align-items: center; }
+.topbar-nav a { font-size: 13px; color: var(--ink-soft); transition: color 0.2s; }
+.topbar-nav a:hover { color: var(--accent); }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; font-size: 13px; font-weight: 500; letter-spacing: 0.02em; transition: all 0.2s ease; border: 1px solid transparent; cursor: pointer; }
+.btn-primary { background: var(--ink); color: var(--cream); }
+.btn-primary:hover { background: var(--accent); }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--ink); }
+.btn-secondary:hover { background: var(--ink); color: var(--cream); }
+.btn-ghost { background: transparent; color: var(--ink-soft); }
+.btn-ghost:hover { color: var(--ink); }
+.btn-sm { padding: 9px 16px; font-size: 12px; }
+.btn-lg { padding: 18px 32px; font-size: 14px; }
+.btn-block { display: flex; width: 100%; justify-content: center; }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: var(--cream); }
+.btn-success { background: var(--success); color: var(--cream); }
+.btn-success:hover { background: #1f4029; }
+.btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+/* HERO LANDING */
+.hero { padding: 96px 0 80px; border-bottom: 1px solid var(--line); position: relative; overflow: hidden; }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.hero-eyebrow { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.hero-eyebrow .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.hero h1 { font-family: var(--font-display); font-weight: 350; font-size: clamp(48px, 7vw, 88px); line-height: 0.95; letter-spacing: -0.035em; margin-bottom: 32px; }
+.hero h1 em { font-style: italic; font-weight: 350; color: var(--accent); }
+.hero p.lede { font-size: 17px; line-height: 1.55; color: var(--ink-soft); margin-bottom: 40px; max-width: 480px; }
+.hero-meta { display: flex; gap: 32px; padding-top: 32px; border-top: 1px solid var(--line); }
+.hero-meta div { font-size: 12px; color: var(--muted); }
+.hero-meta strong { display: block; font-family: var(--font-mono); font-size: 13px; color: var(--ink); margin-bottom: 4px; }
+
+.hero-card { background: var(--paper); border: 1px solid var(--line); padding: 40px; position: relative; }
+.hero-card::before { content: ''; position: absolute; top: -1px; left: -1px; width: 24px; height: 24px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+.hero-card::after { content: ''; position: absolute; bottom: -1px; right: -1px; width: 24px; height: 24px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+.hero-card h3 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin-bottom: 8px; }
+.hero-card p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+.hero-card .key { display: flex; justify-content: space-between; padding: 14px 0; border-top: 1px solid var(--line-soft); font-size: 13px; }
+.hero-card .key:first-of-type { border-top: 0; }
+.hero-card .key span:first-child { color: var(--muted); }
+.hero-card .key span:last-child { font-family: var(--font-mono); font-weight: 500; }
+.hero-card .locked { margin-top: 20px; padding: 16px; background: var(--cream-deep); display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--ink-soft); }
+.hero-card .locked svg { flex-shrink: 0; }
+
+/* SECTIONS */
+.section { padding: 96px 0; border-bottom: 1px solid var(--line); }
+.section-head { display: flex; align-items: baseline; gap: 32px; margin-bottom: 64px; }
+.section-num { font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.15em; color: var(--accent); padding-top: 8px; }
+.section-title { font-family: var(--font-display); font-size: clamp(36px, 5vw, 56px); font-weight: 350; line-height: 1.02; letter-spacing: -0.025em; flex: 1; max-width: 800px; }
+.section-title em { font-style: italic; color: var(--accent); }
+
+/* PROCESS STEPS */
+.process { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.process-step { background: var(--cream); padding: 40px 32px 48px; position: relative; }
+.process-step .step-num { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em; color: var(--muted); margin-bottom: 24px; }
+.process-step h3 { font-family: var(--font-display); font-size: 28px; font-weight: 400; margin-bottom: 12px; letter-spacing: -0.02em; }
+.process-step h3 em { font-style: italic; color: var(--accent); }
+.process-step p { font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+
+/* FOOTER */
+.footer { background: var(--ink); color: var(--cream); padding: 64px 0 32px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.footer h4 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; font-weight: 500; }
+.footer ul { list-style: none; }
+.footer ul li { font-size: 13px; color: rgba(244, 240, 230, 0.7); margin-bottom: 8px; }
+.footer ul li a:hover { color: var(--gold); }
+.footer-brand { font-family: var(--font-display); font-size: 32px; font-weight: 400; margin-bottom: 16px; letter-spacing: -0.02em; }
+.footer-tag { font-size: 13px; color: rgba(244, 240, 230, 0.6); max-width: 320px; line-height: 1.6; }
+.footer-bottom { border-top: 1px solid rgba(244, 240, 230, 0.15); padding-top: 24px; display: flex; justify-content: space-between; font-size: 11px; color: rgba(244, 240, 230, 0.5); font-family: var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.footer-bottom a:hover { color: var(--gold); }
+
+/* ===== ADMIN ===== */
+body.dark-mode { background: var(--ink); color: var(--cream); }
+body.dark-mode .topbar { background: var(--ink); border-color: rgba(244, 240, 230, 0.12); }
+body.dark-mode .topbar-nav a { color: rgba(244, 240, 230, 0.7); }
+body.dark-mode .topbar-nav a:hover { color: var(--gold); }
+body.dark-mode .brand-mark { background: var(--gold); color: var(--ink); }
+body.dark-mode .brand-name .small { color: rgba(244, 240, 230, 0.5); }
+body.dark-mode .btn-primary { background: var(--gold); color: var(--ink); }
+body.dark-mode .btn-primary:hover { background: var(--gold-soft); }
+body.dark-mode .btn-secondary { color: var(--cream); border-color: rgba(244, 240, 230, 0.3); }
+body.dark-mode .btn-secondary:hover { background: var(--cream); color: var(--ink); }
+body.dark-mode .btn-ghost { color: rgba(244, 240, 230, 0.7); }
+body.dark-mode .btn-ghost:hover { color: var(--gold); }
+
+.admin-wrap { padding: 48px 0 96px; min-height: calc(100vh - 64px); }
+.admin-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid rgba(244, 240, 230, 0.12); }
+.admin-head h1 { font-family: var(--font-display); font-size: 48px; font-weight: 350; letter-spacing: -0.025em; }
+.admin-head p { font-size: 13px; color: rgba(244, 240, 230, 0.6); margin-top: 8px; }
+.admin-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-bottom: 48px; border: 1px solid rgba(244, 240, 230, 0.12); }
+.admin-stat { padding: 24px 28px; border-right: 1px solid rgba(244, 240, 230, 0.12); }
+.admin-stat:last-child { border-right: 0; }
+.admin-stat .num { font-family: var(--font-display); font-size: 36px; font-weight: 400; letter-spacing: -0.02em; line-height: 1; margin-bottom: 8px; }
+.admin-stat .num em { font-style: italic; color: var(--gold); }
+.admin-stat .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(244, 240, 230, 0.5); }
+
+/* DEAL LIST */
+.deals-list { border: 1px solid rgba(244, 240, 230, 0.12); }
+.deals-list-head { display: grid; grid-template-columns: 80px 2fr 1fr 1fr 1fr 120px; padding: 16px 24px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(244, 240, 230, 0.5); border-bottom: 1px solid rgba(244, 240, 230, 0.12); }
+.deal-row { display: grid; grid-template-columns: 80px 2fr 1fr 1fr 1fr 120px; padding: 20px 24px; border-bottom: 1px solid rgba(244, 240, 230, 0.08); align-items: center; transition: background 0.15s; }
+.deal-row:last-child { border-bottom: 0; }
+.deal-row:hover { background: rgba(244, 240, 230, 0.03); }
+.deal-row .deal-num { font-family: var(--font-mono); font-size: 12px; color: var(--gold); }
+.deal-row .deal-title { font-family: var(--font-display); font-size: 18px; font-weight: 400; }
+.deal-row .deal-meta { font-size: 12px; color: rgba(244, 240, 230, 0.7); margin-top: 2px; }
+.deal-row .deal-price { font-family: var(--font-mono); font-size: 14px; }
+.deal-row .deal-cap { font-family: var(--font-mono); font-size: 13px; color: rgba(244, 240, 230, 0.7); }
+.deal-row .deal-sigs { font-family: var(--font-mono); font-size: 13px; }
+.deal-row .deal-sigs strong { color: var(--gold); font-weight: 500; }
+.deal-row .deal-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.deal-row .icon-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: rgba(244, 240, 230, 0.6); border: 1px solid rgba(244, 240, 230, 0.15); transition: all 0.15s; }
+.deal-row .icon-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+.empty-state { padding: 96px 32px; text-align: center; border: 1px dashed rgba(244, 240, 230, 0.2); }
+.empty-state h3 { font-family: var(--font-display); font-size: 28px; font-weight: 350; margin-bottom: 12px; }
+.empty-state p { color: rgba(244, 240, 230, 0.5); font-size: 14px; margin-bottom: 24px; }
+
+/* MODAL / WIZARD */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(14, 12, 8, 0.7); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 48px 24px; overflow-y: auto; }
+.modal { background: var(--cream); color: var(--ink); width: 100%; max-width: 720px; position: relative; }
+.modal-head { padding: 32px 40px 24px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+.modal-head h2 { font-family: var(--font-display); font-size: 28px; font-weight: 400; letter-spacing: -0.02em; }
+.modal-head .modal-step { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.modal-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--muted); transition: color 0.15s; }
+.modal-close:hover { color: var(--ink); }
+.modal-body { padding: 32px 40px; }
+.modal-foot { padding: 24px 40px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--paper); }
+
+.modal-progress { display: flex; gap: 4px; margin-bottom: 32px; }
+.modal-progress span { height: 2px; flex: 1; background: var(--line); transition: background 0.3s; }
+.modal-progress span.active { background: var(--accent); }
+.modal-progress span.done { background: var(--ink); }
+
+.step-intro { margin-bottom: 28px; }
+.step-intro .eyebrow { margin-bottom: 8px; }
+.step-intro h3 { font-family: var(--font-display); font-size: 22px; font-weight: 400; margin-bottom: 6px; letter-spacing: -0.015em; }
+.step-intro p { font-size: 13px; color: var(--muted); }
+
+/* FORM CONTROLS */
+.field { margin-bottom: 20px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.field label { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; font-weight: 500; }
+.field .hint { font-size: 11px; color: var(--muted); margin-top: 6px; font-family: var(--font-body); }
+.field input[type="text"], .field input[type="number"], .field input[type="email"], .field input[type="tel"], .field input[type="date"], .field textarea, .field select { width: 100%; background: var(--paper); border: 1px solid var(--line); padding: 12px 14px; font-size: 14px; transition: border-color 0.15s; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--ink); }
+.field textarea { min-height: 100px; resize: vertical; line-height: 1.5; font-family: var(--font-body); }
+.field input.mono, .field textarea.mono { font-family: var(--font-mono); }
+.field .input-prefix { position: relative; }
+.field .input-prefix span { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 13px; color: var(--muted); pointer-events: none; }
+.field .input-prefix input { padding-left: 32px; font-family: var(--font-mono); }
+.field .input-suffix { position: relative; }
+.field .input-suffix span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 12px; color: var(--muted); pointer-events: none; }
+
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 8px 14px; border: 1px solid var(--line); background: var(--paper); font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: var(--font-mono); letter-spacing: 0.04em; }
+.chip:hover { border-color: var(--ink); }
+.chip.selected { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+.docs-list { background: var(--paper); border: 1px solid var(--line); padding: 12px; }
+.docs-item { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; }
+.docs-item input { flex: 1; background: var(--cream); border: 1px solid var(--line); padding: 10px 12px; font-size: 13px; }
+.docs-item button { color: var(--muted); padding: 6px; }
+.docs-item button:hover { color: var(--danger); }
+.docs-add { width: 100%; padding: 10px; border: 1px dashed var(--line); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 8px; transition: all 0.15s; }
+.docs-add:hover { color: var(--ink); border-color: var(--ink); border-style: solid; }
+
+/* SUCCESS / SHARE STEP */
+.share-card { background: var(--paper); border: 1px solid var(--line); padding: 32px; text-align: center; margin-bottom: 24px; }
+.share-card .icon { width: 48px; height: 48px; background: var(--success); color: var(--cream); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.share-card h3 { font-family: var(--font-display); font-size: 28px; font-weight: 400; margin-bottom: 8px; letter-spacing: -0.02em; }
+.share-card p { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+
+.link-display { display: flex; align-items: center; background: var(--cream-deep); border: 1px solid var(--line); padding: 4px; margin-bottom: 16px; }
+.link-display .url { flex: 1; font-family: var(--font-mono); font-size: 12px; padding: 12px 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-soft); }
+.link-display button { background: var(--ink); color: var(--cream); padding: 10px 18px; font-size: 11px; font-family: var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.link-display button:hover { background: var(--accent); }
+.link-display button.copied { background: var(--success); }
+
+.share-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+/* ===== DEAL VIEW (public) ===== */
+.deal-page { background: var(--cream); min-height: 100vh; }
+.deal-hero { padding: 64px 0 48px; border-bottom: 1px solid var(--line); }
+.deal-hero .label { margin-bottom: 16px; }
+.deal-hero h1 { font-family: var(--font-display); font-size: clamp(40px, 6vw, 72px); font-weight: 350; line-height: 1; letter-spacing: -0.03em; margin-bottom: 16px; }
+.deal-hero h1 em { font-style: italic; color: var(--accent); }
+.deal-hero .deal-sub { font-size: 17px; color: var(--ink-soft); max-width: 640px; line-height: 1.5; }
+
+/* NDA STEP */
+.nda-section { padding: 64px 0; }
+.nda-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 64px; align-items: flex-start; }
+
+.nda-document { background: var(--paper); border: 1px solid var(--line); padding: 48px; max-height: 70vh; overflow-y: auto; position: relative; }
+.nda-document::before { content: 'CONFIDENTIEL'; position: absolute; top: 12px; right: 16px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.18em; color: var(--accent); }
+.nda-document h2 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin-bottom: 4px; letter-spacing: -0.015em; }
+.nda-document .doc-meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--line); letter-spacing: 0.08em; }
+.nda-document h3 { font-family: var(--font-display); font-size: 16px; font-weight: 500; margin-top: 24px; margin-bottom: 10px; letter-spacing: -0.01em; }
+.nda-document p { font-size: 13px; line-height: 1.65; color: var(--ink-soft); margin-bottom: 12px; }
+.nda-document ol, .nda-document ul { padding-left: 20px; margin-bottom: 12px; }
+.nda-document li { font-size: 13px; line-height: 1.65; color: var(--ink-soft); margin-bottom: 8px; }
+.nda-document strong { font-weight: 600; color: var(--ink); }
+
+.nda-form { position: sticky; top: 96px; }
+.nda-form h2 { font-family: var(--font-display); font-size: 26px; font-weight: 400; margin-bottom: 8px; letter-spacing: -0.015em; }
+.nda-form .form-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.55; }
+
+.signature-pad-wrap { border: 1px solid var(--line); background: var(--paper); position: relative; }
+.signature-pad { width: 100%; height: 160px; cursor: crosshair; display: block; touch-action: none; }
+.signature-pad-wrap .clear-sig { position: absolute; top: 8px; right: 8px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 4px 8px; }
+.signature-pad-wrap .clear-sig:hover { color: var(--danger); }
+.signature-pad-wrap .sig-baseline { position: absolute; left: 16px; right: 16px; bottom: 28px; height: 1px; background: var(--line); pointer-events: none; }
+.signature-pad-wrap .sig-x { position: absolute; left: 14px; bottom: 30px; font-family: var(--font-display); font-size: 18px; color: var(--muted); pointer-events: none; }
+
+.consent-block { background: var(--cream-deep); border: 1px solid var(--line); padding: 16px; margin-top: 20px; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.consent-block input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; accent-color: var(--ink); width: 16px; height: 16px; cursor: pointer; }
+.consent-block label { font-size: 12px; line-height: 1.55; color: var(--ink-soft); cursor: pointer; }
+.consent-block label strong { color: var(--ink); font-weight: 600; }
+
+/* DEAL DOSSIER */
+.dossier-section { padding: 48px 0 96px; }
+.dossier-success-banner { background: var(--success); color: var(--cream); padding: 16px 24px; display: flex; align-items: center; gap: 12px; margin-bottom: 48px; font-size: 13px; }
+.dossier-success-banner svg { flex-shrink: 0; }
+.dossier-success-banner strong { font-weight: 600; }
+
+.dossier-grid { display: grid; grid-template-columns: 1fr 320px; gap: 64px; align-items: flex-start; }
+
+.dossier-main h2 { font-family: var(--font-display); font-size: 32px; font-weight: 400; margin-bottom: 8px; letter-spacing: -0.02em; }
+.dossier-main .dossier-loc { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 40px; }
+
+.dossier-block { margin-bottom: 48px; }
+.dossier-block .block-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.dossier-block .block-num { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; color: var(--accent); }
+.dossier-block .block-title { font-family: var(--font-display); font-size: 22px; font-weight: 400; letter-spacing: -0.015em; }
+
+.kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 1px solid var(--line-soft); }
+.kv-cell { padding: 16px 0; border-bottom: 1px solid var(--line-soft); display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.kv-cell:nth-child(odd) { padding-right: 20px; border-right: 1px solid var(--line-soft); }
+.kv-cell:nth-child(even) { padding-left: 20px; }
+.kv-cell .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; }
+.kv-cell .v { font-family: var(--font-mono); font-size: 14px; font-weight: 500; text-align: right; }
+
+.financial-highlight { background: var(--ink); color: var(--cream); padding: 32px; margin: 24px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.financial-highlight .fh-item .fh-lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.financial-highlight .fh-item .fh-val { font-family: var(--font-display); font-size: 32px; font-weight: 350; line-height: 1; letter-spacing: -0.02em; }
+.financial-highlight .fh-item .fh-val em { font-style: italic; }
+.financial-highlight .fh-item .fh-sub { font-family: var(--font-mono); font-size: 11px; color: rgba(244, 240, 230, 0.6); margin-top: 6px; }
+
+.thesis-card { background: var(--paper); border: 1px solid var(--line); padding: 28px 32px; }
+.thesis-card .thesis-quote { font-family: var(--font-display); font-style: italic; font-size: 20px; line-height: 1.4; color: var(--ink); letter-spacing: -0.01em; }
+.thesis-card .thesis-quote::before { content: '"'; font-size: 48px; color: var(--accent); line-height: 0; vertical-align: -0.4em; margin-right: 4px; }
+
+.docs-listing { border-top: 1px solid var(--line-soft); }
+.doc-entry { padding: 16px 0; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.doc-entry .doc-name { display: flex; align-items: center; gap: 12px; }
+.doc-entry .doc-icon { width: 36px; height: 36px; background: var(--cream-deep); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+.doc-entry .doc-name span { font-size: 14px; }
+.doc-entry .doc-status { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.doc-entry .doc-status.available { color: var(--success); }
+
+/* SIDEBAR */
+.dossier-side { position: sticky; top: 96px; }
+.contact-card { background: var(--ink); color: var(--cream); padding: 32px; margin-bottom: 24px; }
+.contact-card .contact-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+.contact-card h3 { font-family: var(--font-display); font-size: 22px; font-weight: 400; margin-bottom: 16px; letter-spacing: -0.015em; }
+.contact-card .contact-name { font-size: 14px; margin-bottom: 4px; }
+.contact-card .contact-org { font-size: 12px; color: rgba(244, 240, 230, 0.6); margin-bottom: 20px; }
+.contact-card .contact-meta { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid rgba(244, 240, 230, 0.15); }
+.contact-card .contact-meta a { font-family: var(--font-mono); font-size: 12px; color: rgba(244, 240, 230, 0.85); display: flex; align-items: center; gap: 10px; }
+.contact-card .contact-meta a:hover { color: var(--gold); }
+
+.side-actions { display: flex; flex-direction: column; gap: 8px; }
+
+/* ADMIN LOGIN */
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 64px); padding: 32px; }
+.login-card { background: rgba(244, 240, 230, 0.04); border: 1px solid rgba(244, 240, 230, 0.12); padding: 48px; width: 100%; max-width: 420px; }
+.login-card h1 { font-family: var(--font-display); font-size: 32px; font-weight: 400; margin-bottom: 8px; letter-spacing: -0.02em; }
+.login-card p { font-size: 13px; color: rgba(244, 240, 230, 0.6); margin-bottom: 32px; }
+.login-card .field input { background: rgba(244, 240, 230, 0.04); border-color: rgba(244, 240, 230, 0.2); color: var(--cream); }
+.login-card .field input:focus { border-color: var(--gold); }
+.login-card .field label { color: rgba(244, 240, 230, 0.7); }
+.login-error { padding: 12px 14px; background: rgba(139, 26, 26, 0.2); border: 1px solid var(--danger); font-size: 12px; color: #FFB4B4; margin-bottom: 16px; font-family: var(--font-mono); }
+
+/* SIGNATURES PANEL */
+.sig-panel { background: var(--cream); color: var(--ink); }
+.sig-panel .modal-head { padding-bottom: 16px; }
+.sig-panel .sig-empty { padding: 64px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+.sig-panel .sig-row { display: grid; grid-template-columns: 32px 1fr auto; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line-soft); align-items: center; }
+.sig-panel .sig-row:last-child { border-bottom: 0; }
+.sig-panel .sig-row .sig-avatar { width: 32px; height: 32px; background: var(--ink); color: var(--cream); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 14px; font-weight: 500; }
+.sig-panel .sig-info .name { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+.sig-panel .sig-info .meta { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.sig-panel .sig-date { font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); text-align: right; }
+.sig-panel .sig-date small { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--cream); padding: 14px 24px; font-size: 13px; opacity: 0; transition: all 0.3s ease; z-index: 200; pointer-events: none; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+  .process { grid-template-columns: 1fr; }
+  .nda-layout { grid-template-columns: 1fr; }
+  .dossier-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .field-row, .field-row-3 { grid-template-columns: 1fr; }
+  .admin-stats { grid-template-columns: 1fr 1fr; }
+  .admin-stat:nth-child(2) { border-right: 0; }
+  .admin-stat:nth-child(1), .admin-stat:nth-child(2) { border-bottom: 1px solid rgba(244, 240, 230, 0.12); }
+  .deals-list-head, .deal-row { grid-template-columns: 50px 1fr auto; }
+  .deals-list-head .col-loc, .deals-list-head .col-price, .deals-list-head .col-cap, .deal-row .deal-price, .deal-row .deal-cap, .deal-row .col-loc { display: none; }
+  .financial-highlight { grid-template-columns: 1fr 1fr; }
+  .container, .container-tight, .container-narrow { padding: 0 24px; }
+  .section { padding: 64px 0; }
+  .modal { max-width: calc(100vw - 32px); }
+  .modal-body, .modal-head, .modal-foot { padding-left: 24px; padding-right: 24px; }
+}
+
+/* PRINT */
+@media print {
+  body { background: white; }
+  .topbar, .dossier-side, .dossier-success-banner, .footer, .no-print { display: none !important; }
+  .dossier-grid { grid-template-columns: 1fr; }
+  .container { max-width: 100%; padding: 0; }
+  .dossier-section { padding: 0; }
+  .financial-highlight { background: white; color: black; border: 2px solid black; }
+  .financial-highlight .fh-item .fh-lbl { color: black; }
+  .financial-highlight .fh-item .fh-sub { color: #555; }
+  .dossier-block { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+// ============ STATE & UTILITIES ============
+const STORAGE_KEY_DEALS = 'elevate_dealroom_deals_v1';
+const STORAGE_KEY_AUTH = 'elevate_dealroom_auth_v1';
+const STORAGE_KEY_SIGS_PREFIX = 'elevate_dealroom_sigs_';
+const STORAGE_KEY_SIGNED_PREFIX = 'elevate_dealroom_signed_';
+const ADMIN_PASSWORD = 'elevate2026'; // À modifier — voir admin > paramètres
+
+const ASSET_TYPES = [
+  'Multifamilial', 'RPA (résidence aînés)', 'Hôtellerie', 'Commercial', 'Industriel', 'Terrain', 'Mixte', 'Autre'
+];
+
+const DOC_TYPES = [
+  'Listing original', 'États financiers', 'Rent roll', 'Baux', 'Rôle municipal', 'Évaluation', 'Inspection', 'Photos', 'Plans', 'Pro forma', 'Autre'
+];
+
+function uid(len = 6) {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+function getDeals() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_DEALS) || '[]'); }
+  catch (e) { return []; }
+}
+
+function saveDeals(deals) {
+  localStorage.setItem(STORAGE_KEY_DEALS, JSON.stringify(deals));
+}
+
+function getDealById(id) {
+  return getDeals().find(d => d.id === id);
+}
+
+function getSignatures(dealId) {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SIGS_PREFIX + dealId) || '[]'); }
+  catch (e) { return []; }
+}
+
+function saveSignature(dealId, sig) {
+  const sigs = getSignatures(dealId);
+  sigs.push(sig);
+  localStorage.setItem(STORAGE_KEY_SIGS_PREFIX + dealId, JSON.stringify(sigs));
+}
+
+function isSignedLocally(dealId) {
+  return !!localStorage.getItem(STORAGE_KEY_SIGNED_PREFIX + dealId);
+}
+
+function markSignedLocally(dealId) {
+  localStorage.setItem(STORAGE_KEY_SIGNED_PREFIX + dealId, '1');
+}
+
+function isAdmin() {
+  return localStorage.getItem(STORAGE_KEY_AUTH) === '1';
+}
+
+function setAdmin(val) {
+  if (val) localStorage.setItem(STORAGE_KEY_AUTH, '1');
+  else localStorage.removeItem(STORAGE_KEY_AUTH);
+}
+
+function fmtMoney(n) {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  const num = Number(n);
+  return new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD', maximumFractionDigits: 0 }).format(num);
+}
+
+function fmtMoneyShort(n) {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  const num = Number(n);
+  if (num >= 1e6) return (num / 1e6).toFixed(num >= 10e6 ? 1 : 2) + ' M$';
+  if (num >= 1e3) return (num / 1e3).toFixed(0) + ' k$';
+  return num + ' $';
+}
+
+function fmtPct(n, decimals = 2) {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  return Number(n).toFixed(decimals) + ' %';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' }); }
+  catch (e) { return d; }
+}
+
+function fmtNumber(n) {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  return new Intl.NumberFormat('fr-CA').format(Number(n));
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function encodeDeal(deal) {
+  try {
+    const json = JSON.stringify(deal);
+    return btoa(unescape(encodeURIComponent(json)));
+  } catch (e) { return null; }
+}
+
+function decodeDeal(str) {
+  try {
+    const json = decodeURIComponent(escape(atob(str)));
+    return JSON.parse(json);
+  } catch (e) { return null; }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    if (btn) {
+      const old = btn.textContent;
+      btn.textContent = 'Copié ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = old; btn.classList.remove('copied'); }, 1800);
+    }
+    showToast('Lien copié dans le presse-papier');
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Lien copié');
+  });
+}
+
+// ============ ROUTER ============
+function route() {
+  const hash = window.location.hash || '#/';
+  const app = document.getElementById('app');
+  document.body.classList.remove('dark-mode');
+
+  if (hash === '#/' || hash === '') {
+    renderLanding(app);
+  } else if (hash.startsWith('#/admin')) {
+    document.body.classList.add('dark-mode');
+    if (!isAdmin()) renderLogin(app);
+    else renderAdmin(app);
+  } else if (hash.startsWith('#/deal/')) {
+    renderDealPage(app);
+  } else {
+    renderLanding(app);
+  }
+  window.scrollTo(0, 0);
+}
+
+window.addEventListener('hashchange', route);
+window.addEventListener('load', route);
+
+// ============ ICONS ============
+const icons = {
+  lock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+  copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
+  external: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
+  trash: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
+  users: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
+  check: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+  doc: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  arrow: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+  mail: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>',
+  x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+};
+
+// ============ HEADER ============
+function renderHeader(activeAdmin = false) {
+  return `
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a href="#/" class="brand">
+          <div class="brand-mark">E</div>
+          <div class="brand-name">Elevate <span class="small">Deal Room</span></div>
+        </a>
+        <nav class="topbar-nav">
+          ${activeAdmin
+            ? `<a href="#/" onclick="setAdmin(false)">Déconnexion</a>`
+            : `<a href="https://elevatelocatif.ca/" target="_blank">Elevate Real Estate</a>
+               <a href="#/admin">Opérateur</a>`}
+        </nav>
+      </div>
+    </header>
+  `;
+}
+
+// ============ LANDING ============
+function renderLanding(app) {
+  app.innerHTML = `
+    ${renderHeader()}
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="hero-grid">
+            <div>
+              <div class="hero-eyebrow">
+                <span class="dot"></span>
+                <span class="eyebrow">Deal Flow Privé · Sur invitation</span>
+              </div>
+              <h1>Les deals que <em>personne ne voit</em> sur Centris.</h1>
+              <p class="lede">Elevate Deal Room est un canal privé d'opportunités immobilières — promesses d'achat cessibles, off-market et stratégies de repositionnement — réservé aux investisseurs accrédités et partenaires invités.</p>
+              <div class="hero-meta">
+                <div><strong>Confidentiel</strong>NDA & non-contournement</div>
+                <div><strong>Sélectionné</strong>Deals filtrés par l'opérateur</div>
+                <div><strong>Direct</strong>Aucun intermédiaire ajouté</div>
+              </div>
+            </div>
+            <div class="hero-card">
+              <div class="eyebrow" style="margin-bottom:16px;">Exemple · Deal #A7F2K9</div>
+              <h3>Multifamilial · Outaouais</h3>
+              <p>Acquisition off-market · 80 portes</p>
+              <div class="key"><span>Prix demandé</span><span>—</span></div>
+              <div class="key"><span>Cap rate</span><span>—</span></div>
+              <div class="key"><span>NOI projeté</span><span>—</span></div>
+              <div class="key"><span>Plus-value identifiée</span><span>—</span></div>
+              <div class="locked">${icons.lock}<span>Informations débloquées après signature du NDA</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <span class="section-num">01</span>
+            <h2 class="section-title">Comment ça <em>fonctionne.</em></h2>
+          </div>
+        </div>
+        <div class="process">
+          <div class="process-step">
+            <div class="step-num">F1 · Invitation</div>
+            <h3>Tu reçois un <em>lien privé.</em></h3>
+            <p>Un opérateur Elevate te transmet un lien sécurisé vers un deal spécifique. Le lien est nominatif et tracé — on sait exactement qui voit quoi.</p>
+          </div>
+          <div class="process-step">
+            <div class="step-num">F2 · Engagement</div>
+            <h3>Tu signes le <em>NDA.</em></h3>
+            <p>Avant d'accéder aux chiffres, tu signes un engagement de confidentialité et de non-contournement. Standard du marché institutionnel — 3 minutes.</p>
+          </div>
+          <div class="process-step">
+            <div class="step-num">F3 · Accès</div>
+            <h3>Le dossier <em>se débloque.</em></h3>
+            <p>Localisation, financiers, thèse d'investissement, documents disponibles, contact direct. Tu décides en 48h si tu veux pousser. Sinon, retour à zéro.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" style="background:var(--paper);">
+        <div class="container-tight" style="text-align:center;">
+          <div class="eyebrow" style="margin-bottom:24px;">Vous avez un lien ?</div>
+          <h2 class="display" style="font-size:48px; font-weight:350; letter-spacing:-0.025em; margin-bottom:24px;">Suivez le lien que vous avez reçu.</h2>
+          <p style="font-size:15px; color:var(--ink-soft); max-width:560px; margin:0 auto 32px;">Chaque opportunité Elevate est partagée individuellement, jamais publiquement listée. Si vous n'avez pas reçu d'invitation, contactez l'équipe pour qu'on évalue une présentation.</p>
+          <a href="mailto:deals@elevatelocatif.ca" class="btn btn-secondary btn-lg">deals@elevatelocatif.ca ${icons.arrow}</a>
+        </div>
+      </section>
+    </main>
+    ${renderFooter()}
+  `;
+}
+
+function renderFooter() {
+  return `
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <div class="footer-brand">Elevate Deal Room</div>
+            <p class="footer-tag">Canal privé de deal flow opéré par Investissement Elevate inc. — la firme québécoise derrière 300M$+ d'actifs immobiliers.</p>
+          </div>
+          <div>
+            <h4>Société</h4>
+            <ul>
+              <li><a href="https://elevatelocatif.ca/" target="_blank">Elevate Real Estate</a></li>
+              <li><a href="https://elevate-real-estate.github.io/elevate-academy/" target="_blank">Elevate Academy</a></li>
+              <li><a href="mailto:contact@elevatelocatif.ca">Contact</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Accès</h4>
+            <ul>
+              <li><a href="#/admin">Espace opérateur</a></li>
+              <li><a href="mailto:deals@elevatelocatif.ca">Soumettre un dossier</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4>Légal</h4>
+            <ul>
+              <li>Confidentialité</li>
+              <li>Conditions</li>
+              <li>NDA modèle</li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span>© 2026 Investissement Elevate inc.</span>
+          <span>Fait au Québec</span>
+        </div>
+      </div>
+    </footer>
+  `;
+}
+
+// ============ LOGIN ============
+function renderLogin(app) {
+  app.innerHTML = `
+    ${renderHeader()}
+    <div class="login-wrap">
+      <div class="login-card">
+        <h1>Accès opérateur</h1>
+        <p>Espace réservé à l'équipe Elevate. Saisis ton code d'accès pour gérer le deal flow.</p>
+        <form onsubmit="return doLogin(event)">
+          <div id="loginError"></div>
+          <div class="field">
+            <label>Code d'accès</label>
+            <input type="password" id="loginPwd" autofocus required />
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">Entrer ${icons.arrow}</button>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function doLogin(e) {
+  e.preventDefault();
+  const pwd = document.getElementById('loginPwd').value;
+  if (pwd === ADMIN_PASSWORD) {
+    setAdmin(true);
+    route();
+  } else {
+    document.getElementById('loginError').innerHTML = '<div class="login-error">Code incorrect.</div>';
+  }
+  return false;
+}
+
+// ============ ADMIN DASHBOARD ============
+function renderAdmin(app) {
+  const deals = getDeals().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  const totalSigs = deals.reduce((sum, d) => sum + getSignatures(d.id).length, 0);
+  const totalGMV = deals.reduce((sum, d) => sum + (Number(d.priceCession) || Number(d.priceAsk) || 0), 0);
+  const totalFees = deals.reduce((sum, d) => sum + (Number(d.cessionFee) || 0), 0);
+
+  app.innerHTML = `
+    ${renderHeader(true)}
+    <div class="container admin-wrap">
+      <div class="admin-head">
+        <div>
+          <h1>Deal Pipeline</h1>
+          <p>Gestion centralisée du deal flow — création, partage, signatures.</p>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="openWizard()">${icons.plus} Nouveau deal</button>
+      </div>
+
+      <div class="admin-stats">
+        <div class="admin-stat">
+          <div class="num"><em>${deals.length}</em></div>
+          <div class="lbl">Deals actifs</div>
+        </div>
+        <div class="admin-stat">
+          <div class="num">${totalSigs}</div>
+          <div class="lbl">Signatures reçues</div>
+        </div>
+        <div class="admin-stat">
+          <div class="num">${fmtMoneyShort(totalGMV)}</div>
+          <div class="lbl">GMV pipeline</div>
+        </div>
+        <div class="admin-stat">
+          <div class="num"><em>${fmtMoneyShort(totalFees)}</em></div>
+          <div class="lbl">Frais de cession potentiels</div>
+        </div>
+      </div>
+
+      ${deals.length === 0 ? `
+        <div class="empty-state">
+          <h3>Aucun deal pour le moment.</h3>
+          <p>Crée ton premier deal en 5 étapes guidées — moins de 3 minutes.</p>
+          <button class="btn btn-primary" onclick="openWizard()">${icons.plus} Créer un deal</button>
+        </div>
+      ` : `
+        <div class="deals-list">
+          <div class="deals-list-head">
+            <div>ID</div>
+            <div>Deal</div>
+            <div class="col-loc">Localisation</div>
+            <div class="col-price">Prix cession</div>
+            <div class="col-cap">Signatures</div>
+            <div></div>
+          </div>
+          ${deals.map(d => {
+            const sigs = getSignatures(d.id);
+            return `
+              <div class="deal-row">
+                <div class="deal-num">#${d.id}</div>
+                <div>
+                  <div class="deal-title">${escapeHtml(d.title || 'Sans titre')}</div>
+                  <div class="deal-meta">${escapeHtml(d.assetType || '—')} · ${escapeHtml(d.units ? d.units + ' unités' : '')}</div>
+                </div>
+                <div class="deal-cap col-loc">${escapeHtml(d.city || '—')}</div>
+                <div class="deal-price col-price">${fmtMoneyShort(d.priceCession || d.priceAsk)}</div>
+                <div class="deal-sigs">
+                  <strong>${sigs.length}</strong> ${sigs.length === 1 ? 'signature' : 'signatures'}
+                </div>
+                <div class="deal-actions">
+                  <button class="icon-btn" onclick="shareLink('${d.id}')" title="Copier le lien">${icons.copy}</button>
+                  <button class="icon-btn" onclick="openSignatures('${d.id}')" title="Voir les signatures">${icons.users}</button>
+                  <button class="icon-btn" onclick="window.open('#/deal/${d.id}?d=' + encodeDeal(getDealById('${d.id}')), '_blank')" title="Prévisualiser">${icons.external}</button>
+                  <button class="icon-btn" onclick="deleteDeal('${d.id}')" title="Supprimer">${icons.trash}</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function shareLink(dealId) {
+  const deal = getDealById(dealId);
+  if (!deal) return;
+  const encoded = encodeDeal(deal);
+  const url = `${window.location.origin}${window.location.pathname}#/deal/${dealId}?d=${encoded}`;
+  copyToClipboard(url);
+}
+
+function deleteDeal(dealId) {
+  if (!confirm('Supprimer ce deal ? Les signatures associées seront aussi supprimées. Cette action est irréversible.')) return;
+  const deals = getDeals().filter(d => d.id !== dealId);
+  saveDeals(deals);
+  localStorage.removeItem(STORAGE_KEY_SIGS_PREFIX + dealId);
+  renderAdmin(document.getElementById('app'));
+  showToast('Deal supprimé');
+}
+
+// ============ WIZARD : CREATE DEAL ============
+let wizardState = null;
+
+function openWizard(existingDeal = null) {
+  wizardState = existingDeal ? JSON.parse(JSON.stringify(existingDeal)) : {
+    id: uid(),
+    title: '', assetType: '', city: '', region: '', address: '',
+    units: '', sqft: '', yearBuilt: '', occupancy: '',
+    priceAsk: '', priceCession: '', cessionFee: '',
+    grossIncome: '', expenses: '', noi: '', capRate: '',
+    valueAdd: '', strategy: '',
+    promiseExpiry: '', financingNotes: '',
+    documents: [],
+    contactName: '', contactOrg: 'Investissement Elevate inc.', contactEmail: '', contactPhone: '',
+    coverImage: '',
+    step: 0,
+    createdAt: Date.now()
+  };
+  renderWizard();
+}
+
+function closeWizard() {
+  wizardState = null;
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+}
+
+function renderWizard() {
+  document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.onclick = (e) => { if (e.target === backdrop) closeWizard(); };
+
+  const steps = [
+    { title: 'Identification', sub: 'Les bases pour identifier le deal en un coup d\'œil.' },
+    { title: 'Caractéristiques', sub: 'L\'actif lui-même — taille, état, occupation.' },
+    { title: 'Financiers', sub: 'Les chiffres qui matérialisent l\'opportunité.' },
+    { title: 'Thèse & conditions', sub: 'Pourquoi ce deal, et sous quels termes.' },
+    { title: 'Documents & contact', sub: 'Documents disponibles et personne ressource.' },
+    { title: 'Partage', sub: 'Ton lien est prêt à être envoyé.' }
+  ];
+  const s = wizardState.step;
+  const step = steps[s];
+
+  let body = '';
+  if (s === 0) body = wizardStep0();
+  else if (s === 1) body = wizardStep1();
+  else if (s === 2) body = wizardStep2();
+  else if (s === 3) body = wizardStep3();
+  else if (s === 4) body = wizardStep4();
+  else if (s === 5) body = wizardStep5();
+
+  backdrop.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-step">Étape ${s + 1} sur ${steps.length} · #${wizardState.id}</div>
+          <h2 style="margin-top:6px;">${step.title}</h2>
+        </div>
+        <button class="modal-close" onclick="closeWizard()">${icons.x}</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-progress">
+          ${steps.map((_, i) => `<span class="${i < s ? 'done' : i === s ? 'active' : ''}"></span>`).join('')}
+        </div>
+        <div class="step-intro">
+          <div class="eyebrow">${step.title}</div>
+          <p>${step.sub}</p>
+        </div>
+        ${body}
+      </div>
+      ${s < 5 ? `
+        <div class="modal-foot">
+          ${s > 0 ? `<button class="btn btn-ghost" onclick="wizardBack()">← Précédent</button>` : `<div></div>`}
+          <button class="btn btn-primary" onclick="wizardNext()">${s === 4 ? 'Générer le lien' : 'Continuer'} ${icons.arrow}</button>
+        </div>
+      ` : `
+        <div class="modal-foot">
+          <button class="btn btn-ghost" onclick="closeWizard(); renderAdmin(document.getElementById('app'));">Retour au dashboard</button>
+          <button class="btn btn-primary" onclick="openWizard()">${icons.plus} Créer un autre deal</button>
+        </div>
+      `}
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  // Bind inputs
+  bindWizardInputs(backdrop);
+}
+
+function bindWizardInputs(scope) {
+  scope.querySelectorAll('[data-bind]').forEach(el => {
+    const key = el.dataset.bind;
+    el.addEventListener('input', () => {
+      wizardState[key] = el.value;
+      // Auto-calculate NOI and cap rate when relevant
+      if (['grossIncome', 'expenses', 'priceAsk'].includes(key)) {
+        const gi = Number(wizardState.grossIncome) || 0;
+        const ex = Number(wizardState.expenses) || 0;
+        const px = Number(wizardState.priceAsk) || 0;
+        if (gi && ex) {
+          wizardState.noi = gi - ex;
+          const noiEl = scope.querySelector('[data-bind="noi"]');
+          if (noiEl) noiEl.value = wizardState.noi;
+        }
+        if (wizardState.noi && px) {
+          wizardState.capRate = ((wizardState.noi / px) * 100).toFixed(2);
+          const capEl = scope.querySelector('[data-bind="capRate"]');
+          if (capEl) capEl.value = wizardState.capRate;
+        }
+      }
+      // Compute markup if both prices set
+      if (['priceAsk', 'priceCession'].includes(key)) {
+        const ask = Number(wizardState.priceAsk) || 0;
+        const cess = Number(wizardState.priceCession) || 0;
+        if (ask && cess && cess > ask) {
+          wizardState.cessionFee = cess - ask;
+          const feeEl = scope.querySelector('[data-bind="cessionFee"]');
+          if (feeEl) feeEl.value = wizardState.cessionFee;
+        }
+      }
+    });
+  });
+}
+
+function wizardStep0() {
+  return `
+    <div class="field">
+      <label>Titre du deal *</label>
+      <input type="text" data-bind="title" value="${escapeHtml(wizardState.title)}" placeholder="Ex: Plaza Cross Loop · Power Center NNN · Chelsea" />
+      <div class="hint">Un titre clair qui résume le deal en 5–10 mots.</div>
+    </div>
+    <div class="field">
+      <label>Type d'actif *</label>
+      <div class="chip-group">
+        ${ASSET_TYPES.map(t => `<button type="button" class="chip ${wizardState.assetType === t ? 'selected' : ''}" onclick="wizardState.assetType='${t}'; renderWizard();">${t}</button>`).join('')}
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Ville *</label>
+        <input type="text" data-bind="city" value="${escapeHtml(wizardState.city)}" placeholder="Ex: Chelsea" />
+      </div>
+      <div class="field">
+        <label>Région</label>
+        <input type="text" data-bind="region" value="${escapeHtml(wizardState.region)}" placeholder="Ex: Outaouais" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Adresse complète (optionnel)</label>
+      <input type="text" data-bind="address" value="${escapeHtml(wizardState.address)}" placeholder="Visible uniquement après signature du NDA" />
+      <div class="hint">L'adresse précise n'est dévoilée qu'au prospect signataire.</div>
+    </div>
+  `;
+}
+
+function wizardStep1() {
+  return `
+    <div class="field-row">
+      <div class="field">
+        <label>Nombre d'unités / portes</label>
+        <input type="number" data-bind="units" value="${wizardState.units}" placeholder="Ex: 80" />
+        <div class="hint">Pour multifamilial, RPA, hôtel.</div>
+      </div>
+      <div class="field">
+        <label>Superficie locative (pi²)</label>
+        <input type="number" data-bind="sqft" value="${wizardState.sqft}" placeholder="Ex: 27317" />
+        <div class="hint">Pour commercial, industriel.</div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Année de construction</label>
+        <input type="number" data-bind="yearBuilt" value="${wizardState.yearBuilt}" placeholder="Ex: 1998" />
+      </div>
+      <div class="field">
+        <label>Taux d'occupation actuel</label>
+        <div class="input-suffix">
+          <input type="number" step="0.1" data-bind="occupancy" value="${wizardState.occupancy}" placeholder="Ex: 95" />
+          <span>%</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function wizardStep2() {
+  return `
+    <div class="field-row">
+      <div class="field">
+        <label>Prix demandé (vendeur)</label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" data-bind="priceAsk" value="${wizardState.priceAsk}" placeholder="17000000" class="mono" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Prix de cession (ton offre au prospect) *</label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" data-bind="priceCession" value="${wizardState.priceCession}" placeholder="17500000" class="mono" />
+        </div>
+        <div class="hint">Le prix auquel tu cèdes la PA.</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Frais de cession (markup) — calculé auto</label>
+      <div class="input-prefix">
+        <span>$</span>
+        <input type="number" data-bind="cessionFee" value="${wizardState.cessionFee}" placeholder="Auto-calculé" class="mono" readonly style="background:var(--cream-deep);" />
+      </div>
+      <div class="hint">Différence entre prix de cession et prix demandé.</div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Revenus bruts annuels</label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" data-bind="grossIncome" value="${wizardState.grossIncome}" placeholder="1500000" class="mono" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Dépenses opérationnelles annuelles</label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" data-bind="expenses" value="${wizardState.expenses}" placeholder="500000" class="mono" />
+        </div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>NOI — calculé auto</label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input type="number" data-bind="noi" value="${wizardState.noi}" placeholder="Auto-calculé" class="mono" />
+        </div>
+        <div class="hint">Tu peux ajuster manuellement si nécessaire.</div>
+      </div>
+      <div class="field">
+        <label>Cap rate — calculé auto</label>
+        <div class="input-suffix">
+          <input type="number" step="0.01" data-bind="capRate" value="${wizardState.capRate}" placeholder="5.8" class="mono" />
+          <span>%</span>
+        </div>
+        <div class="hint">Basé sur NOI / prix demandé.</div>
+      </div>
+    </div>
+  `;
+}
+
+function wizardStep3() {
+  return `
+    <div class="field">
+      <label>Thèse d'investissement *</label>
+      <textarea data-bind="strategy" placeholder="Ex: Power center NNN avec locataires AAA (McDonald's, Banque Nationale, Pharmaprix). Excellent emplacement, baux long terme. Excès de terrain représentant ~1M$ de BPV. Structure d'achat via share purchase pour éliminer la taxe de mutation.">${escapeHtml(wizardState.strategy)}</textarea>
+      <div class="hint">Quelques phrases qui décrivent pourquoi le deal est attractif et comment créer de la valeur.</div>
+    </div>
+    <div class="field">
+      <label>Plus-value identifiée / Création de valeur</label>
+      <div class="input-prefix">
+        <span>$</span>
+        <input type="number" data-bind="valueAdd" value="${wizardState.valueAdd}" placeholder="1000000" class="mono" />
+      </div>
+      <div class="hint">Montant de plus-value identifiable post-acquisition.</div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Échéance de la PA</label>
+        <input type="date" data-bind="promiseExpiry" value="${wizardState.promiseExpiry || ''}" />
+        <div class="hint">Date limite pour signer / fermer.</div>
+      </div>
+      <div class="field">
+        <label>Notes de financement</label>
+        <input type="text" data-bind="financingNotes" value="${escapeHtml(wizardState.financingNotes)}" placeholder="Ex: 65% LTV pré-approuvé BN" />
+      </div>
+    </div>
+  `;
+}
+
+function wizardStep4() {
+  return `
+    <div class="field">
+      <label>Documents disponibles (après NDA)</label>
+      <div class="docs-list" id="docsList">
+        ${(wizardState.documents || []).map((doc, i) => `
+          <div class="docs-item">
+            <input type="text" value="${escapeHtml(doc)}" oninput="wizardState.documents[${i}] = this.value;" />
+            <button onclick="wizardState.documents.splice(${i}, 1); renderWizard();" title="Retirer">${icons.trash}</button>
+          </div>
+        `).join('')}
+        <button class="docs-add" onclick="wizardState.documents.push(''); renderWizard();">${icons.plus} Ajouter un document</button>
+      </div>
+      <div class="hint" style="margin-top:8px;">Liste des documents que tu fourniras au prospect une fois le NDA signé.</div>
+    </div>
+
+    <div class="field" style="margin-top:32px;">
+      <label style="color:var(--accent);">Contact pour ce deal</label>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Nom du contact *</label>
+        <input type="text" data-bind="contactName" value="${escapeHtml(wizardState.contactName)}" placeholder="Edouard Wakim" />
+      </div>
+      <div class="field">
+        <label>Organisation</label>
+        <input type="text" data-bind="contactOrg" value="${escapeHtml(wizardState.contactOrg)}" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Courriel</label>
+        <input type="email" data-bind="contactEmail" value="${escapeHtml(wizardState.contactEmail)}" placeholder="deals@elevatelocatif.ca" />
+      </div>
+      <div class="field">
+        <label>Téléphone</label>
+        <input type="tel" data-bind="contactPhone" value="${escapeHtml(wizardState.contactPhone)}" placeholder="+1 (xxx) xxx-xxxx" />
+      </div>
+    </div>
+  `;
+}
+
+function wizardStep5() {
+  const deal = wizardState;
+  const encoded = encodeDeal(deal);
+  const url = `${window.location.origin}${window.location.pathname}#/deal/${deal.id}?d=${encoded}`;
+  const mailSubject = encodeURIComponent(`Opportunité confidentielle · ${deal.title}`);
+  const mailBody = encodeURIComponent(
+`Bonjour,
+
+Je te partage une opportunité confidentielle de mon pipeline.
+
+${deal.title}
+${deal.assetType || ''}${deal.city ? ' · ' + deal.city : ''}
+
+Pour accéder au dossier, suis ce lien et signe le NDA standard (3 minutes) :
+${url}
+
+Le NDA inclut une clause de non-contournement standard du marché institutionnel.
+
+Au plaisir d'en discuter,
+${deal.contactName || ''}
+${deal.contactOrg || ''}`);
+
+  return `
+    <div class="share-card">
+      <div class="icon">${icons.check}</div>
+      <h3>Ton deal est prêt.</h3>
+      <p>Le lien ci-dessous est unique à ce deal. Tu peux le partager à autant de prospects que tu veux — chacun signera son propre NDA.</p>
+      <div class="link-display">
+        <div class="url" id="generatedUrl">${url}</div>
+        <button onclick="copyToClipboard(document.getElementById('generatedUrl').textContent, this)">Copier</button>
+      </div>
+      <div class="share-actions">
+        <a class="btn btn-secondary btn-sm" href="${url}" target="_blank">${icons.external} Prévisualiser</a>
+        <a class="btn btn-secondary btn-sm" href="mailto:?subject=${mailSubject}&body=${mailBody}">${icons.mail} Envoyer par courriel</a>
+        <button class="btn btn-secondary btn-sm" onclick="downloadQR('${url}', '${deal.id}')">${icons.download} Code QR</button>
+      </div>
+    </div>
+    <div class="hint" style="text-align:center; margin-top:24px;">
+      Le deal est sauvegardé dans ton dashboard. Tu peux le retrouver, le modifier ou voir les signatures à tout moment.
+    </div>
+  `;
+}
+
+function wizardNext() {
+  // Validate current step
+  if (wizardState.step === 0) {
+    if (!wizardState.title || !wizardState.assetType || !wizardState.city) {
+      showToast('Remplis le titre, le type et la ville pour continuer.');
+      return;
+    }
+  }
+  if (wizardState.step === 2) {
+    if (!wizardState.priceCession) {
+      showToast('Le prix de cession est requis.');
+      return;
+    }
+  }
+  if (wizardState.step === 3) {
+    if (!wizardState.strategy) {
+      showToast('La thèse d\'investissement est requise.');
+      return;
+    }
+  }
+  if (wizardState.step === 4) {
+    if (!wizardState.contactName) {
+      showToast('Le nom du contact est requis.');
+      return;
+    }
+    // Save deal
+    const deals = getDeals();
+    const existing = deals.findIndex(d => d.id === wizardState.id);
+    const toSave = { ...wizardState };
+    delete toSave.step;
+    if (existing >= 0) deals[existing] = toSave;
+    else deals.push(toSave);
+    saveDeals(deals);
+  }
+  wizardState.step++;
+  renderWizard();
+}
+
+function wizardBack() {
+  if (wizardState.step > 0) {
+    wizardState.step--;
+    renderWizard();
+  }
+}
+
+function downloadQR(url, dealId) {
+  // Use Google Charts API for simple QR (works without dependencies)
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(url)}&format=png&margin=10`;
+  window.open(qrUrl, '_blank');
+}
+
+// ============ SIGNATURES PANEL ============
+function openSignatures(dealId) {
+  const deal = getDealById(dealId);
+  const sigs = getSignatures(dealId);
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };
+
+  backdrop.innerHTML = `
+    <div class="modal sig-panel">
+      <div class="modal-head">
+        <div>
+          <div class="modal-step">${sigs.length} ${sigs.length === 1 ? 'signature' : 'signatures'} · #${dealId}</div>
+          <h2 style="margin-top:6px;">${escapeHtml(deal.title)}</h2>
+        </div>
+        <button class="modal-close" onclick="this.closest('.modal-backdrop').remove()">${icons.x}</button>
+      </div>
+      <div class="modal-body">
+        ${sigs.length === 0 ? `
+          <div class="sig-empty">
+            <p>Aucune signature reçue pour le moment.</p>
+            <p style="margin-top:8px; font-size:12px;">Partage le lien à un prospect pour commencer.</p>
+          </div>
+        ` : sigs.map(s => `
+          <div class="sig-row">
+            <div class="sig-avatar">${(s.fullName || '?').charAt(0).toUpperCase()}</div>
+            <div class="sig-info">
+              <div class="name">${escapeHtml(s.fullName)}${s.org ? ` <span style="color:var(--muted); font-weight:400;">· ${escapeHtml(s.org)}</span>` : ''}</div>
+              <div class="meta">${escapeHtml(s.email)}${s.phone ? ` · ${escapeHtml(s.phone)}` : ''}</div>
+            </div>
+            <div class="sig-date">
+              ${new Date(s.signedAt).toLocaleDateString('fr-CA')}
+              <small>${new Date(s.signedAt).toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' })}</small>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      ${sigs.length > 0 ? `
+        <div class="modal-foot">
+          <button class="btn btn-ghost" onclick="this.closest('.modal-backdrop').remove()">Fermer</button>
+          <button class="btn btn-secondary" onclick="exportSignaturesCSV('${dealId}')">${icons.download} Exporter CSV</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+}
+
+function exportSignaturesCSV(dealId) {
+  const deal = getDealById(dealId);
+  const sigs = getSignatures(dealId);
+  const header = 'Nom,Organisation,Courriel,Téléphone,Date signature,Deal\n';
+  const rows = sigs.map(s => [
+    s.fullName, s.org || '', s.email, s.phone || '',
+    new Date(s.signedAt).toISOString(), deal.title
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const csv = header + rows;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `signatures_${dealId}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ============ DEAL PUBLIC PAGE ============
+function renderDealPage(app) {
+  const hash = window.location.hash;
+  const match = hash.match(/^#\/deal\/([A-Z0-9]+)(\?d=(.+))?$/i);
+  if (!match) {
+    app.innerHTML = `${renderHeader()}<div class="container" style="padding:96px 0; text-align:center;"><h1 class="display" style="font-size:48px;">Lien invalide.</h1><p style="margin-top:16px;">Le lien que tu as suivi n'est pas reconnu.</p></div>`;
+    return;
+  }
+  const dealId = match[1];
+  const encoded = match[3];
+  let deal = null;
+  if (encoded) deal = decodeDeal(encoded);
+  if (!deal) deal = getDealById(dealId);
+  if (!deal) {
+    app.innerHTML = `${renderHeader()}<div class="container" style="padding:96px 0; text-align:center;"><h1 class="display" style="font-size:48px;">Deal introuvable.</h1><p style="margin-top:16px;">Ce lien a expiré ou n'est plus disponible. Contacte l'opérateur Elevate.</p></div>`;
+    return;
+  }
+
+  if (isSignedLocally(dealId) || isAdmin()) {
+    renderDealDossier(app, deal);
+  } else {
+    renderDealNDA(app, deal);
+  }
+}
+
+// ============ NDA STEP ============
+function renderDealNDA(app, deal) {
+  const today = new Date().toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  app.innerHTML = `
+    ${renderHeader()}
+    <main class="deal-page">
+      <section class="deal-hero">
+        <div class="container">
+          <div class="label">Deal #${deal.id} · Confidentiel</div>
+          <h1>${escapeHtml(deal.title)}</h1>
+          <p class="deal-sub">Avant d'accéder au dossier complet, signe l'engagement de confidentialité et de non-contournement ci-dessous. Le processus prend environ 3 minutes.</p>
+        </div>
+      </section>
+
+      <section class="nda-section">
+        <div class="container">
+          <div class="nda-layout">
+            <div class="nda-document">
+              <h2>Engagement de Confidentialité & Non-Contournement</h2>
+              <div class="doc-meta">Document généré le ${today} · Référence #${deal.id}</div>
+
+              <p><strong>Entre :</strong> ${escapeHtml(deal.contactOrg || 'Investissement Elevate inc.')} (« <strong>L'Opérateur</strong> »), corporation dûment constituée selon les lois du Québec, représentée par ${escapeHtml(deal.contactName || 'son représentant autorisé')};</p>
+              <p><strong>Et :</strong> Le signataire identifié dans le formulaire ci-contre (« <strong>Le Récipiendaire</strong> »).</p>
+
+              <h3>1. Objet</h3>
+              <p>L'Opérateur s'apprête à divulguer au Récipiendaire certaines informations confidentielles relatives à une opportunité d'acquisition immobilière (le « <strong>Deal</strong> ») incluant, sans s'y limiter : la nature de l'actif, sa localisation précise, les données financières, le nom du vendeur, les conditions de la promesse d'achat en cours et tout document connexe (collectivement, les « <strong>Informations Confidentielles</strong> »).</p>
+
+              <h3>2. Engagement de confidentialité</h3>
+              <p>Le Récipiendaire s'engage à :</p>
+              <ol>
+                <li>Traiter les Informations Confidentielles avec la plus stricte confidentialité;</li>
+                <li>Ne pas divulguer, partager, reproduire ou rendre disponible les Informations Confidentielles à toute tierce partie sans le consentement écrit préalable de l'Opérateur;</li>
+                <li>Utiliser les Informations Confidentielles uniquement aux fins d'évaluer la transaction potentielle entre les parties;</li>
+                <li>Mettre en place des mesures raisonnables pour préserver la confidentialité des Informations Confidentielles, équivalentes ou supérieures à celles qu'il applique pour ses propres informations confidentielles.</li>
+              </ol>
+
+              <h3>3. Non-contournement</h3>
+              <p>Le Récipiendaire <strong>s'engage expressément</strong> à ne pas, directement ou indirectement, par lui-même ou par toute personne morale, partenaire, mandataire, employé, conjoint ou affilié :</p>
+              <ol>
+                <li>Contacter le vendeur, son représentant, son courtier ou tout intermédiaire identifié par l'Opérateur, sans la participation explicite et écrite de l'Opérateur;</li>
+                <li>Soumettre une offre d'achat, négocier, ou conclure toute transaction relative au Deal sans l'Opérateur comme partie ou bénéficiaire de la commission convenue;</li>
+                <li>Utiliser les Informations Confidentielles pour structurer une transaction concurrente, parallèle ou substitutive qui contournerait l'Opérateur.</li>
+              </ol>
+              <p>Cet engagement de non-contournement demeure en vigueur pour une période de <strong>vingt-quatre (24) mois</strong> à compter de la date de signature.</p>
+
+              <h3>4. Pénalité en cas de violation</h3>
+              <p>Toute violation de la clause de non-contournement entraînera, sans préavis ni mise en demeure, l'obligation pour le Récipiendaire de verser à l'Opérateur, à titre de dommages-intérêts liquidés et non comme pénalité, une somme équivalente à <strong>cinq pour cent (5%) du prix d'acquisition</strong> du Deal contourné, ou un minimum de <strong>cent mille dollars (100 000 $ CAD)</strong>, selon le plus élevé des deux. Cette somme est exigible dans les trente (30) jours suivant la conclusion de la transaction contournée.</p>
+
+              <h3>5. Exclusions</h3>
+              <p>Les obligations ci-dessus ne s'appliquent pas aux informations qui : (a) sont déjà du domaine public au moment de leur divulgation; (b) deviennent publiques sans faute du Récipiendaire; (c) étaient déjà connues du Récipiendaire avant la divulgation, preuve à l'appui; (d) sont reçues légitimement d'une tierce partie non liée par un engagement de confidentialité.</p>
+
+              <h3>6. Durée</h3>
+              <p>Le présent engagement entre en vigueur dès sa signature et demeure en vigueur pour une période de <strong>cinq (5) ans</strong> en ce qui concerne la confidentialité, et <strong>vingt-quatre (24) mois</strong> en ce qui concerne le non-contournement.</p>
+
+              <h3>7. Loi applicable et juridiction</h3>
+              <p>Le présent engagement est régi par les lois en vigueur dans la <strong>province de Québec</strong> et les lois du Canada qui y sont applicables. Tout litige sera soumis aux tribunaux du district judiciaire de Québec, à l'exclusion de toute autre juridiction.</p>
+
+              <h3>8. Acceptation électronique</h3>
+              <p>Le Récipiendaire reconnaît que sa signature électronique, apposée par signature manuscrite numérique et confirmation par case à cocher, constitue une signature valide au sens de la <em>Loi concernant le cadre juridique des technologies de l'information</em> (RLRQ, c. C-1.1) et engage le Récipiendaire au même titre qu'une signature manuscrite traditionnelle.</p>
+            </div>
+
+            <div class="nda-form">
+              <h2>Signer pour accéder</h2>
+              <p class="form-sub">Tes informations sont transmises uniquement à l'Opérateur. Aucun courriel marketing.</p>
+
+              <form onsubmit="return submitNDA(event, '${deal.id}')">
+                <div class="field">
+                  <label>Nom complet *</label>
+                  <input type="text" id="ndaFullName" required placeholder="Prénom Nom" />
+                </div>
+                <div class="field">
+                  <label>Organisation</label>
+                  <input type="text" id="ndaOrg" placeholder="Société, fonds, etc." />
+                </div>
+                <div class="field">
+                  <label>Courriel *</label>
+                  <input type="email" id="ndaEmail" required placeholder="nom@société.com" />
+                </div>
+                <div class="field">
+                  <label>Téléphone</label>
+                  <input type="tel" id="ndaPhone" placeholder="+1 (xxx) xxx-xxxx" />
+                </div>
+
+                <div class="field">
+                  <label>Signature manuscrite *</label>
+                  <div class="signature-pad-wrap">
+                    <canvas id="sigPad" class="signature-pad"></canvas>
+                    <span class="sig-x">×</span>
+                    <div class="sig-baseline"></div>
+                    <button type="button" class="clear-sig" onclick="clearSignaturePad()">Effacer</button>
+                  </div>
+                  <div class="hint">Signe avec ta souris ou ton doigt (mobile).</div>
+                </div>
+
+                <div class="consent-block" onclick="document.getElementById('ndaConsent').click();">
+                  <input type="checkbox" id="ndaConsent" required />
+                  <label for="ndaConsent" onclick="event.stopPropagation();">
+                    <strong>Je reconnais avoir lu et compris l'Engagement de Confidentialité & Non-Contournement</strong> ci-contre. Je m'engage à respecter l'ensemble de ses termes, et je confirme que ma signature électronique a la même valeur juridique qu'une signature manuscrite.
+                  </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:24px;">
+                  Signer et accéder au dossier ${icons.arrow}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    ${renderFooter()}
+  `;
+
+  // Initialize signature pad
+  setupSignaturePad();
+}
+
+let sigPadCtx = null;
+let sigPadDrawing = false;
+let sigPadHasInk = false;
+let sigPadLastX = 0;
+let sigPadLastY = 0;
+
+function setupSignaturePad() {
+  const canvas = document.getElementById('sigPad');
+  if (!canvas) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  sigPadCtx = canvas.getContext('2d');
+  sigPadCtx.scale(ratio, ratio);
+  sigPadCtx.strokeStyle = '#0E0C08';
+  sigPadCtx.lineWidth = 2;
+  sigPadCtx.lineCap = 'round';
+  sigPadCtx.lineJoin = 'round';
+  sigPadHasInk = false;
+
+  function pos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x, y };
+  }
+  function start(e) {
+    e.preventDefault();
+    sigPadDrawing = true;
+    sigPadHasInk = true;
+    const p = pos(e);
+    sigPadLastX = p.x; sigPadLastY = p.y;
+  }
+  function move(e) {
+    if (!sigPadDrawing) return;
+    e.preventDefault();
+    const p = pos(e);
+    sigPadCtx.beginPath();
+    sigPadCtx.moveTo(sigPadLastX, sigPadLastY);
+    sigPadCtx.lineTo(p.x, p.y);
+    sigPadCtx.stroke();
+    sigPadLastX = p.x; sigPadLastY = p.y;
+  }
+  function end() { sigPadDrawing = false; }
+
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', end);
+  canvas.addEventListener('mouseleave', end);
+  canvas.addEventListener('touchstart', start);
+  canvas.addEventListener('touchmove', move);
+  canvas.addEventListener('touchend', end);
+}
+
+function clearSignaturePad() {
+  const canvas = document.getElementById('sigPad');
+  if (!canvas || !sigPadCtx) return;
+  sigPadCtx.clearRect(0, 0, canvas.width, canvas.height);
+  sigPadHasInk = false;
+}
+
+function submitNDA(e, dealId) {
+  e.preventDefault();
+  const fullName = document.getElementById('ndaFullName').value.trim();
+  const org = document.getElementById('ndaOrg').value.trim();
+  const email = document.getElementById('ndaEmail').value.trim();
+  const phone = document.getElementById('ndaPhone').value.trim();
+  const consent = document.getElementById('ndaConsent').checked;
+
+  if (!fullName || !email || !consent) {
+    showToast('Remplis tous les champs requis.');
+    return false;
+  }
+  if (!sigPadHasInk) {
+    showToast('Signature requise — utilise la zone de signature.');
+    return false;
+  }
+
+  const canvas = document.getElementById('sigPad');
+  const signatureData = canvas.toDataURL('image/png');
+
+  const sig = {
+    dealId,
+    fullName,
+    org,
+    email,
+    phone,
+    signatureData,
+    signedAt: Date.now(),
+    userAgent: navigator.userAgent,
+    ip: 'client-side'
+  };
+
+  // Save locally (admin will see it when they open the same browser)
+  saveSignature(dealId, sig);
+  markSignedLocally(dealId);
+
+  // Envoi notification courriel via Formspree
+  const dealTitle = document.querySelector('.deal-hero h1')?.textContent || dealId;
+  fetch('https://formspree.io/f/xkoeopyz', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      _subject: `🔔 Nouvelle signature NDA — ${dealTitle}`,
+      deal_id: dealId,
+      deal_title: dealTitle,
+      signataire_nom: fullName,
+      signataire_organisation: org || 'Non précisé',
+      signataire_courriel: email,
+      signataire_telephone: phone || 'Non précisé',
+      date_signature: new Date().toLocaleString('fr-CA', { timeZone: 'America/Toronto' })
+    })
+  }).catch(err => console.log('Notification non envoyée:', err));
+
+  showToast('Signature enregistrée — déverrouillage du dossier...');
+  setTimeout(() => route(), 600);
+  return false;
+}
+
+// ============ DOSSIER ============
+function renderDealDossier(app, deal) {
+  const today = new Date();
+  app.innerHTML = `
+    ${renderHeader()}
+    <main class="deal-page">
+      <section class="deal-hero">
+        <div class="container">
+          <div class="label">Deal #${deal.id} · Dossier débloqué</div>
+          <h1>${escapeHtml(deal.title)}</h1>
+          <p class="deal-sub">${escapeHtml(deal.assetType || '')}${deal.city ? ' · ' + escapeHtml(deal.city) : ''}${deal.region ? ', ' + escapeHtml(deal.region) : ''}</p>
+        </div>
+      </section>
+
+      <section class="dossier-section">
+        <div class="container">
+          <div class="dossier-success-banner no-print">
+            ${icons.check}<span>Engagement signé le ${today.toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}. Le dossier est désormais accessible. <strong>Contenu strictement confidentiel.</strong></span>
+          </div>
+
+          <div class="dossier-grid">
+            <div class="dossier-main">
+              <h2>Sommaire exécutif</h2>
+              <div class="dossier-loc">${escapeHtml(deal.address || (deal.city + (deal.region ? ', ' + deal.region : '')))}</div>
+
+              ${deal.strategy ? `
+                <div class="thesis-card">
+                  <div class="thesis-quote">${escapeHtml(deal.strategy)}</div>
+                </div>
+              ` : ''}
+
+              <div class="financial-highlight">
+                <div class="fh-item">
+                  <div class="fh-lbl">Prix de cession</div>
+                  <div class="fh-val">${fmtMoneyShort(deal.priceCession || deal.priceAsk)}</div>
+                  <div class="fh-sub">CAD</div>
+                </div>
+                <div class="fh-item">
+                  <div class="fh-lbl">NOI</div>
+                  <div class="fh-val"><em>${fmtMoneyShort(deal.noi)}</em></div>
+                  <div class="fh-sub">annualisé</div>
+                </div>
+                <div class="fh-item">
+                  <div class="fh-lbl">Cap rate</div>
+                  <div class="fh-val">${deal.capRate ? deal.capRate : '—'}<span style="font-size:18px;">%</span></div>
+                  <div class="fh-sub">sur prix demandé</div>
+                </div>
+                <div class="fh-item">
+                  <div class="fh-lbl">Plus-value</div>
+                  <div class="fh-val"><em>${fmtMoneyShort(deal.valueAdd)}</em></div>
+                  <div class="fh-sub">identifiée</div>
+                </div>
+              </div>
+
+              <div class="dossier-block">
+                <div class="block-head">
+                  <span class="block-num">01</span>
+                  <h3 class="block-title">L'actif</h3>
+                </div>
+                <div class="kv-grid">
+                  <div class="kv-cell"><span class="k">Type</span><span class="v">${escapeHtml(deal.assetType || '—')}</span></div>
+                  <div class="kv-cell"><span class="k">Localisation</span><span class="v">${escapeHtml(deal.city || '—')}</span></div>
+                  ${deal.units ? `<div class="kv-cell"><span class="k">Unités</span><span class="v">${fmtNumber(deal.units)}</span></div>` : ''}
+                  ${deal.sqft ? `<div class="kv-cell"><span class="k">Superficie</span><span class="v">${fmtNumber(deal.sqft)} pi²</span></div>` : ''}
+                  ${deal.yearBuilt ? `<div class="kv-cell"><span class="k">Année</span><span class="v">${escapeHtml(deal.yearBuilt)}</span></div>` : ''}
+                  ${deal.occupancy ? `<div class="kv-cell"><span class="k">Occupation</span><span class="v">${deal.occupancy}%</span></div>` : ''}
+                  ${deal.address ? `<div class="kv-cell" style="grid-column: span 2; border-right: none;"><span class="k">Adresse</span><span class="v">${escapeHtml(deal.address)}</span></div>` : ''}
+                </div>
+              </div>
+
+              <div class="dossier-block">
+                <div class="block-head">
+                  <span class="block-num">02</span>
+                  <h3 class="block-title">Financiers</h3>
+                </div>
+                <div class="kv-grid">
+                  <div class="kv-cell"><span class="k">Prix demandé</span><span class="v">${fmtMoney(deal.priceAsk)}</span></div>
+                  <div class="kv-cell"><span class="k">Prix de cession</span><span class="v">${fmtMoney(deal.priceCession)}</span></div>
+                  ${deal.grossIncome ? `<div class="kv-cell"><span class="k">Revenus bruts</span><span class="v">${fmtMoney(deal.grossIncome)}</span></div>` : ''}
+                  ${deal.expenses ? `<div class="kv-cell"><span class="k">Dépenses</span><span class="v">${fmtMoney(deal.expenses)}</span></div>` : ''}
+                  ${deal.noi ? `<div class="kv-cell"><span class="k">NOI</span><span class="v">${fmtMoney(deal.noi)}</span></div>` : ''}
+                  ${deal.capRate ? `<div class="kv-cell"><span class="k">Cap rate</span><span class="v">${deal.capRate}%</span></div>` : ''}
+                </div>
+              </div>
+
+              ${(deal.promiseExpiry || deal.financingNotes) ? `
+                <div class="dossier-block">
+                  <div class="block-head">
+                    <span class="block-num">03</span>
+                    <h3 class="block-title">Conditions</h3>
+                  </div>
+                  <div class="kv-grid">
+                    ${deal.promiseExpiry ? `<div class="kv-cell"><span class="k">Échéance PA</span><span class="v">${fmtDate(deal.promiseExpiry)}</span></div>` : ''}
+                    ${deal.financingNotes ? `<div class="kv-cell"><span class="k">Financement</span><span class="v">${escapeHtml(deal.financingNotes)}</span></div>` : ''}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${(deal.documents && deal.documents.length > 0 && deal.documents.some(d => d && d.trim())) ? `
+                <div class="dossier-block">
+                  <div class="block-head">
+                    <span class="block-num">04</span>
+                    <h3 class="block-title">Documents disponibles</h3>
+                  </div>
+                  <div class="docs-listing">
+                    ${deal.documents.filter(d => d && d.trim()).map(d => `
+                      <div class="doc-entry">
+                        <div class="doc-name">
+                          <div class="doc-icon">${icons.doc}</div>
+                          <span>${escapeHtml(d)}</span>
+                        </div>
+                        <div class="doc-status available">Sur demande</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                  <p style="font-size:12px; color:var(--muted); margin-top:16px;">Les documents sont fournis directement par l'opérateur sur demande, par canal sécurisé.</p>
+                </div>
+              ` : ''}
+            </div>
+
+            <aside class="dossier-side">
+              <div class="contact-card">
+                <div class="contact-eyebrow">Contact direct</div>
+                <h3>Discutons.</h3>
+                <div class="contact-name">${escapeHtml(deal.contactName || '—')}</div>
+                <div class="contact-org">${escapeHtml(deal.contactOrg || '')}</div>
+                <div class="contact-meta">
+                  ${deal.contactEmail ? `<a href="mailto:${escapeHtml(deal.contactEmail)}?subject=${encodeURIComponent('Deal #' + deal.id + ' — ' + deal.title)}">${icons.mail} ${escapeHtml(deal.contactEmail)}</a>` : ''}
+                  ${deal.contactPhone ? `<a href="tel:${escapeHtml(deal.contactPhone)}">${icons.phone} ${escapeHtml(deal.contactPhone)}</a>` : ''}
+                </div>
+              </div>
+
+              <div class="side-actions no-print">
+                ${deal.contactEmail ? `<a href="mailto:${escapeHtml(deal.contactEmail)}?subject=${encodeURIComponent('Deal #' + deal.id + ' — Intérêt')}&body=${encodeURIComponent('Bonjour ' + (deal.contactName || '') + ',\n\nJe suis intéressé(e) à discuter du deal #' + deal.id + ' (' + deal.title + '). Quand peut-on en parler?\n\nMerci,')}" class="btn btn-primary btn-block">${icons.mail} Marquer mon intérêt</a>` : ''}
+                <button class="btn btn-secondary btn-block" onclick="window.print()">${icons.download} Télécharger le dossier (PDF)</button>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+    </main>
+    ${renderFooter()}
+  `;
+}
+</script>
+</body>
+</html>
