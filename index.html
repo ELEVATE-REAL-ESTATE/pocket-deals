@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root {
   --cream: #F4F0E6;
@@ -510,6 +511,18 @@ const CLOUDINARY_CLOUD_NAME = 'dhnae7dnu';
 const CLOUDINARY_UPLOAD_PRESET = 'efgmacqq';
 const CLOUDINARY_CONFIGURED = CLOUDINARY_CLOUD_NAME !== 'TON_CLOUD_NAME' && CLOUDINARY_UPLOAD_PRESET !== 'TON_UPLOAD_PRESET';
 
+// =============================================
+// CONFIG EMAILJS — PHASE 7 (Envoi automatisé)
+// =============================================
+const EMAILJS_SERVICE_ID = 'service_ykmfyj7';
+const EMAILJS_TEMPLATE_ID = 'template_filkkkx';
+const EMAILJS_PUBLIC_KEY = '4-fItLdyBhP4B_D-_';
+const EMAILJS_CONFIGURED = EMAILJS_PUBLIC_KEY !== 'TON_EMAILJS_PUBLIC_KEY';
+
+if (EMAILJS_CONFIGURED && typeof emailjs !== 'undefined') {
+  emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+}
+
 const ASSET_TYPES = [
   'Multifamilial', 'RPA (résidence aînés)', 'Hôtellerie', 'Commercial', 'Industriel', 'Terrain', 'Mixte', 'Autre'
 ];
@@ -721,6 +734,7 @@ const icons = {
   plus: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
   arrow: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
   mail: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  send: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
   phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>',
   x: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
 };
@@ -1002,6 +1016,7 @@ async function renderAdmin(app) {
                 </div>
                 <div class="deal-actions">
                   <button class="icon-btn" onclick="shareLink('${d.id}')" title="Copier le lien">${icons.copy}</button>
+                  <button class="icon-btn" onclick="openSendByEmail('${d.id}')" title="Envoyer par courriel">${icons.send}</button>
                   <button class="icon-btn" onclick="openSignatures('${d.id}')" title="Voir les signatures">${icons.users}</button>
                   <button class="icon-btn" onclick="window.open('#/deal/${d.id}', '_blank')" title="Prévisualiser">${icons.external}</button>
                   <button class="icon-btn" onclick="deleteDeal('${d.id}')" title="Supprimer">${icons.trash}</button>
@@ -1018,6 +1033,118 @@ async function renderAdmin(app) {
 function shareLink(dealId) {
   const url = `${window.location.origin}${window.location.pathname}#/deal/${dealId}`;
   copyToClipboard(url);
+}
+
+// ============ ENVOI AUTOMATISÉ PAR COURRIEL ============
+async function openSendByEmail(dealId) {
+  if (!EMAILJS_CONFIGURED) {
+    showToast('EmailJS non configuré — voir README.');
+    return;
+  }
+
+  const deal = await getDealById(dealId);
+  if (!deal) { showToast('Deal introuvable'); return; }
+
+  const user = await getCurrentUser();
+  const dealUrl = `${window.location.origin}${window.location.pathname}#/deal/${dealId}`;
+  const fromName = (user?.email?.split('@')[0] || '').replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop';
+  backdrop.onclick = (e) => { if (e.target === backdrop) backdrop.remove(); };
+
+  backdrop.innerHTML = `
+    <div class="modal sig-panel" style="max-width: 560px;">
+      <div class="modal-head">
+        <div>
+          <div class="modal-step">Envoi automatisé · #${dealId}</div>
+          <h2 style="margin-top:6px;">Partager par courriel</h2>
+        </div>
+        <button class="modal-close" onclick="this.closest('.modal-backdrop').remove()">${icons.x}</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px; color:var(--muted); margin-bottom:24px;">
+          Le destinataire reçoit un courriel formaté avec le lien sécurisé vers le deal. Le courriel part de <strong>${escapeHtml(user?.email || 'ton compte')}</strong>, donc une copie reste dans tes <em>Envoyés</em>.
+        </p>
+
+        <div class="field">
+          <label>Courriel du destinataire *</label>
+          <input type="email" id="sendEmail" placeholder="prospect@société.com" autofocus />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Prénom du destinataire</label>
+            <input type="text" id="sendToName" placeholder="Jean" />
+            <div class="hint">Utilisé pour personnaliser la salutation.</div>
+          </div>
+          <div class="field">
+            <label>Ton nom (signature)</label>
+            <input type="text" id="sendFromName" value="${escapeHtml(deal.contactName || fromName || '')}" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Message personnel</label>
+          <textarea id="sendMessage" rows="4" placeholder="Salut, je pense que ce deal pourrait t'intéresser...">${escapeHtml(deal.assetType ? `Je sors un deal ${deal.assetType.toLowerCase()}${deal.city ? ' à ' + deal.city : ''} qui devrait t'intéresser. Jette un œil au dossier — financiers, photos, documents — tout est dedans après signature du NDA standard.` : '')}</textarea>
+          <div class="hint">Ce message apparaît en haut du courriel, juste avant la carte du deal.</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="this.closest('.modal-backdrop').remove()">Annuler</button>
+        <button class="btn btn-primary" id="sendDealBtn" onclick="sendDealByEmail('${dealId}', this)">${icons.send} Envoyer le courriel</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+  document.getElementById('sendEmail').focus();
+}
+
+async function sendDealByEmail(dealId, btn) {
+  const email = document.getElementById('sendEmail').value.trim();
+  const toName = document.getElementById('sendToName').value.trim();
+  const fromName = document.getElementById('sendFromName').value.trim();
+  const message = document.getElementById('sendMessage').value.trim();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Adresse courriel invalide.');
+    return;
+  }
+
+  if (typeof emailjs === 'undefined') {
+    showToast('SDK EmailJS non chargé — vérifie ta connexion.');
+    return;
+  }
+
+  const deal = await getDealById(dealId);
+  if (!deal) { showToast('Deal introuvable'); return; }
+
+  const dealUrl = `${window.location.origin}${window.location.pathname}#/deal/${dealId}`;
+
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours...';
+
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      to_email: email,
+      to_name: toName || 'Bonjour',
+      from_name: fromName || 'Elevate',
+      deal_title: deal.title || '',
+      deal_id: dealId,
+      deal_link: dealUrl,
+      personal_message: message || 'Je te partage une opportunité confidentielle de mon pipeline.'
+    });
+
+    showToast('Courriel envoyé à ' + email + ' ✓');
+    const modal = btn.closest('.modal-backdrop');
+    if (modal) modal.remove();
+  } catch (err) {
+    console.error('EmailJS send error:', err);
+    showToast('Erreur d\'envoi: ' + (err.text || err.message || 'voir console'));
+    btn.disabled = false;
+    btn.innerHTML = icons.send + ' Envoyer le courriel';
+  }
 }
 
 async function deleteDeal(dealId) {
@@ -1691,8 +1818,9 @@ ${deal.contactOrg || ''}`);
         <button onclick="copyToClipboard(document.getElementById('generatedUrl').textContent, this)">Copier</button>
       </div>
       <div class="share-actions">
+        <button class="btn btn-primary btn-sm" onclick="openSendByEmail('${deal.id}')">${icons.send} Envoyer auto par courriel</button>
         <a class="btn btn-secondary btn-sm" href="${url}" target="_blank">${icons.external} Prévisualiser</a>
-        <a class="btn btn-secondary btn-sm" href="mailto:?subject=${mailSubject}&body=${mailBody}">${icons.mail} Envoyer par courriel</a>
+        <a class="btn btn-secondary btn-sm" href="mailto:?subject=${mailSubject}&body=${mailBody}">${icons.mail} Brouillon Gmail</a>
         <button class="btn btn-secondary btn-sm" onclick="downloadQR('${url}', '${deal.id}')">${icons.download} Code QR</button>
       </div>
     </div>
