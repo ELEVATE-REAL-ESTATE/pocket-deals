@@ -359,6 +359,37 @@ body.dark-mode .btn-ghost:hover { color: var(--gold); }
 .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color: var(--cream); padding: 14px 24px; font-size: 13px; opacity: 0; transition: all 0.3s ease; z-index: 200; pointer-events: none; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* PHASE 6 — DOCUMENTS PDF */
+.doc-upload-zone { border: 2px dashed var(--line); background: var(--paper); padding: 32px 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 16px; }
+.doc-upload-zone:hover { border-color: var(--accent); background: var(--cream-deep); }
+.doc-upload-zone .upload-icon { width: 36px; height: 36px; margin: 0 auto 12px; color: var(--muted); }
+.doc-upload-zone .upload-title { font-family: var(--font-display); font-size: 16px; font-weight: 400; margin-bottom: 4px; }
+.doc-upload-zone .upload-sub { font-size: 11px; color: var(--muted); }
+
+.doc-item-uploaded { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--paper); border: 1px solid var(--line); margin-bottom: 8px; }
+.doc-item-uploaded .doc-file-icon { width: 36px; height: 36px; flex-shrink: 0; background: var(--accent); color: var(--cream); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.05em; }
+.doc-item-uploaded .doc-file-icon.pdf { background: var(--accent); }
+.doc-item-uploaded .doc-file-icon.xlsx { background: var(--success); }
+.doc-item-uploaded .doc-file-icon.docx { background: #1E40AF; }
+.doc-item-uploaded .doc-file-icon.other { background: var(--gold); }
+.doc-item-uploaded .doc-info { flex: 1; min-width: 0; }
+.doc-item-uploaded .doc-info input { width: 100%; background: transparent; border: none; font-size: 14px; padding: 2px 0; font-weight: 500; }
+.doc-item-uploaded .doc-info input:focus { outline: none; border-bottom: 1px solid var(--ink); }
+.doc-item-uploaded .doc-info .doc-meta-line { font-family: var(--font-mono); font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 0.05em; text-transform: uppercase; }
+.doc-item-uploaded .doc-actions { display: flex; gap: 4px; }
+.doc-item-uploaded .doc-actions button { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.doc-item-uploaded .doc-actions button:hover { color: var(--ink); }
+.doc-item-uploaded .doc-actions button.danger:hover { color: var(--danger); }
+
+/* DOC DISPLAY in dossier */
+.doc-entry.has-file { cursor: pointer; transition: background 0.15s; }
+.doc-entry.has-file:hover { background: var(--paper); }
+.doc-entry .doc-icon.pdf-icon { background: var(--accent); color: var(--cream); font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+.doc-entry .doc-icon.xlsx-icon { background: var(--success); color: var(--cream); font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+.doc-entry .doc-icon.docx-icon { background: #1E40AF; color: var(--cream); font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+.doc-entry .doc-icon.other-icon { background: var(--gold); color: var(--ink); font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+.doc-entry .doc-status.downloadable { color: var(--success); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
 /* PHASE 3 — PHOTOS & GALERIE */
 .photo-upload-zone { border: 2px dashed var(--line); background: var(--paper); padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
 .photo-upload-zone:hover { border-color: var(--accent); background: var(--cream-deep); }
@@ -1415,6 +1446,98 @@ function openCloudinaryUpload() {
   widget.open();
 }
 
+function openDocumentUpload() {
+  if (!CLOUDINARY_CONFIGURED) {
+    showToast('Cloudinary non configuré.');
+    return;
+  }
+  if (typeof cloudinary === 'undefined') {
+    showToast('Widget Cloudinary non chargé — vérifie ta connexion.');
+    return;
+  }
+  const widget = cloudinary.createUploadWidget({
+    cloudName: CLOUDINARY_CLOUD_NAME,
+    uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+    multiple: true,
+    maxFiles: 20,
+    maxFileSize: 50000000, // 50 MB
+    folder: 'elevate-deal-room/docs',
+    resourceType: 'auto',
+    sources: ['local', 'url'],
+    clientAllowedFormats: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv'],
+    language: 'fr',
+    text: {
+      fr: {
+        or: 'ou',
+        menu: { files: 'Mes fichiers', web: 'Lien web' },
+        local: { browse: 'Parcourir', dd_title_single: 'Glisser un document ici', dd_title_multi: 'Glisser des documents ici', drop_title_single: 'Lâcher pour téléverser', drop_title_multiple: 'Lâcher pour téléverser' }
+      }
+    },
+    styles: {
+      palette: {
+        window: '#FBF8F0', sourceBg: '#F4F0E6', windowBorder: '#D8CFB8',
+        tabIcon: '#6B2737', inactiveTabIcon: '#6A6157', menuIcons: '#0E0C08',
+        link: '#6B2737', action: '#0E0C08', inProgress: '#B89968',
+        complete: '#2D5A3D', error: '#8B1A1A',
+        textDark: '#0E0C08', textLight: '#FBF8F0'
+      }
+    }
+  }, (error, result) => {
+    if (error) {
+      console.error('Cloudinary doc upload error:', error);
+      showToast('Erreur d\'upload: ' + (error.statusText || 'voir console'));
+      return;
+    }
+    if (result && result.event === 'success') {
+      if (!wizardState.documents) wizardState.documents = [];
+      // Derive a sensible default name from the file
+      const originalFilename = result.info.original_filename || 'document';
+      const format = (result.info.format || '').toLowerCase();
+      const friendlyName = humanizeDocName(originalFilename);
+      wizardState.documents.push({
+        name: friendlyName,
+        url: result.info.secure_url,
+        publicId: result.info.public_id,
+        format: format,
+        bytes: result.info.bytes,
+        uploadedAt: Date.now()
+      });
+      renderWizard();
+    }
+  });
+  widget.open();
+}
+
+function humanizeDocName(filename) {
+  // Strip extension, replace underscores/hyphens with spaces, title case
+  const base = filename.replace(/\.[^.]+$/, '');
+  const spaced = base.replace(/[_-]+/g, ' ').trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+function fmtBytes(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' o';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' Ko';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+}
+
+function removeDocument(idx) {
+  if (!wizardState.documents) return;
+  wizardState.documents.splice(idx, 1);
+  renderWizard();
+}
+
+function updateDocName(idx, value) {
+  if (!wizardState.documents || !wizardState.documents[idx]) return;
+  // Handle backward compat: if doc is still a string, convert it
+  if (typeof wizardState.documents[idx] === 'string') {
+    wizardState.documents[idx] = { name: value };
+  } else {
+    wizardState.documents[idx].name = value;
+  }
+}
+
 function addPhotoByUrl() {
   const input = document.getElementById('photoUrlInput');
   if (!input) return;
@@ -1447,17 +1570,68 @@ function setCover(idx) {
 function wizardStep4() {
   return `
     <div class="field">
-      <label>Documents disponibles (après NDA)</label>
-      <div class="docs-list" id="docsList">
-        ${(wizardState.documents || []).map((doc, i) => `
-          <div class="docs-item">
-            <input type="text" value="${escapeHtml(doc)}" oninput="wizardState.documents[${i}] = this.value;" />
-            <button onclick="wizardState.documents.splice(${i}, 1); renderWizard();" title="Retirer">${icons.trash}</button>
+      <label>Documents disponibles (accessibles après NDA signé)</label>
+
+      ${CLOUDINARY_CONFIGURED ? `
+        <div class="doc-upload-zone" onclick="openDocumentUpload()">
+          <div class="upload-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <polyline points="9 15 12 12 15 15"/>
+            </svg>
           </div>
-        `).join('')}
-        <button class="docs-add" onclick="wizardState.documents.push(''); renderWizard();">${icons.plus} Ajouter un document</button>
-      </div>
-      <div class="hint" style="margin-top:8px;">Liste des documents que tu fourniras au prospect une fois le NDA signé.</div>
+          <div class="upload-title">Téléverser des documents</div>
+          <div class="upload-sub">PDF · Excel · Word · max 50 Mo par fichier · jusqu'à 20 fichiers</div>
+        </div>
+      ` : ''}
+
+      ${(wizardState.documents && wizardState.documents.length > 0) ? `
+        <div style="margin-bottom: 8px;">
+          ${wizardState.documents.map((doc, i) => {
+            // Backward compat: old format was just a string
+            if (typeof doc === 'string') {
+              return `
+                <div class="doc-item-uploaded">
+                  <div class="doc-file-icon other">DOC</div>
+                  <div class="doc-info">
+                    <input type="text" value="${escapeHtml(doc)}" oninput="updateDocName(${i}, this.value)" />
+                    <div class="doc-meta-line">Nom seulement · à téléverser plus tard</div>
+                  </div>
+                  <div class="doc-actions">
+                    <button onclick="removeDocument(${i})" class="danger" title="Retirer">${icons.trash}</button>
+                  </div>
+                </div>
+              `;
+            }
+            const format = (doc.format || '').toLowerCase();
+            const iconClass = format === 'pdf' ? 'pdf' :
+                              (format === 'xlsx' || format === 'xls' || format === 'csv') ? 'xlsx' :
+                              (format === 'docx' || format === 'doc') ? 'docx' : 'other';
+            const iconLabel = (format || 'doc').toUpperCase().slice(0, 4);
+            return `
+              <div class="doc-item-uploaded">
+                <div class="doc-file-icon ${iconClass}">${iconLabel}</div>
+                <div class="doc-info">
+                  <input type="text" value="${escapeHtml(doc.name || 'Sans nom')}" oninput="updateDocName(${i}, this.value)" placeholder="Nom du document" />
+                  <div class="doc-meta-line">${doc.url ? 'Téléversé' : 'Lien manuel'} ${doc.bytes ? '· ' + fmtBytes(doc.bytes) : ''}</div>
+                </div>
+                <div class="doc-actions">
+                  ${doc.url ? `<button onclick="window.open('${escapeHtml(doc.url)}', '_blank')" title="Aperçu">${icons.external}</button>` : ''}
+                  <button onclick="removeDocument(${i})" class="danger" title="Retirer">${icons.trash}</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : `
+        <div class="hint" style="text-align: center; padding: 16px; border: 1px dashed var(--line); color: var(--muted);">
+          Aucun document pour l'instant. Les documents sont <strong>optionnels</strong> mais critiques pour les acquéreurs sérieux (rent roll, états financiers, plans, baux, etc.).
+        </div>
+      `}
+
+      <div class="hint" style="margin-top:8px;">Les documents seront accessibles uniquement après que le prospect ait signé le NDA. Confidentialité préservée.</div>
     </div>
 
     <div class="field" style="margin-top:32px;">
@@ -2053,26 +2227,46 @@ function renderDealDossier(app, deal) {
                 </div>
               ` : ''}
 
-              ${(deal.documents && deal.documents.length > 0 && deal.documents.some(d => d && d.trim())) ? `
-                <div class="dossier-block">
-                  <div class="block-head">
-                    <span class="block-num">04</span>
-                    <h3 class="block-title">Documents disponibles</h3>
+              ${(() => {
+                if (!deal.documents || deal.documents.length === 0) return '';
+                // Normalize: handle both old format (strings) and new (objects)
+                const normalizedDocs = deal.documents
+                  .map(d => {
+                    if (typeof d === 'string') return d.trim() ? { name: d.trim() } : null;
+                    if (d && d.name) return d;
+                    return null;
+                  })
+                  .filter(d => d !== null);
+                if (normalizedDocs.length === 0) return '';
+                return `
+                  <div class="dossier-block">
+                    <div class="block-head">
+                      <span class="block-num">04</span>
+                      <h3 class="block-title">Documents disponibles</h3>
+                    </div>
+                    <div class="docs-listing">
+                      ${normalizedDocs.map(d => {
+                        const hasFile = !!d.url;
+                        const format = (d.format || '').toLowerCase();
+                        const iconClass = format === 'pdf' ? 'pdf-icon' :
+                                          (format === 'xlsx' || format === 'xls' || format === 'csv') ? 'xlsx-icon' :
+                                          (format === 'docx' || format === 'doc') ? 'docx-icon' : 'other-icon';
+                        const iconLabel = format ? format.toUpperCase().slice(0, 4) : '';
+                        return `
+                          <div class="doc-entry ${hasFile ? 'has-file' : ''}" ${hasFile ? `onclick="window.open('${escapeHtml(d.url)}', '_blank')"` : ''}>
+                            <div class="doc-name">
+                              <div class="doc-icon ${hasFile ? iconClass : ''}">${iconLabel || icons.doc}</div>
+                              <span>${escapeHtml(d.name)}${d.bytes ? ` <span style="color:var(--muted); font-family:var(--font-mono); font-size:11px;">· ${fmtBytes(d.bytes)}</span>` : ''}</span>
+                            </div>
+                            <div class="doc-status ${hasFile ? 'downloadable' : 'available'}">${hasFile ? icons.download + ' Télécharger' : 'Sur demande'}</div>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+                    <p style="font-size:12px; color:var(--muted); margin-top:16px;">Les documents marqués "Télécharger" sont accessibles immédiatement. Les autres sont fournis sur demande par canal sécurisé.</p>
                   </div>
-                  <div class="docs-listing">
-                    ${deal.documents.filter(d => d && d.trim()).map(d => `
-                      <div class="doc-entry">
-                        <div class="doc-name">
-                          <div class="doc-icon">${icons.doc}</div>
-                          <span>${escapeHtml(d)}</span>
-                        </div>
-                        <div class="doc-status available">Sur demande</div>
-                      </div>
-                    `).join('')}
-                  </div>
-                  <p style="font-size:12px; color:var(--muted); margin-top:16px;">Les documents sont fournis directement par l'opérateur sur demande, par canal sécurisé.</p>
-                </div>
-              ` : ''}
+                `;
+              })()}
             </div>
 
             <aside class="dossier-side">
