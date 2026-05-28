@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --cream: #F4F0E6;
@@ -463,17 +464,17 @@ const STORAGE_KEY_DEALS = 'elevate_dealroom_deals_v1';
 const STORAGE_KEY_AUTH = 'elevate_dealroom_auth_v1';
 const STORAGE_KEY_SIGS_PREFIX = 'elevate_dealroom_sigs_';
 const STORAGE_KEY_SIGNED_PREFIX = 'elevate_dealroom_signed_';
-const ADMIN_PASSWORD = 'elevate2026'; // À modifier — voir admin > paramètres
+
+// =============================================
+// CONFIG SUPABASE — PHASE 5 (Backend)
+// =============================================
+const SUPABASE_URL = 'https://uqyknvkxrymldwnbrftw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVxeWtudmt4cnltbGR3bmJyZnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5OTUzOTYsImV4cCI6MjA5NTU3MTM5Nn0.1nSVI1QpN9iEYiJsbFEj9r1Tx80qnvuIvh8yBFM3RdA';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // =============================================
 // CONFIG CLOUDINARY — PHASE 3 (Photos)
 // =============================================
-// 1. Créer un compte gratuit sur https://cloudinary.com (25GB gratuit)
-// 2. Dans le Dashboard, copier ton "Cloud name" (en haut)
-// 3. Settings → Upload → Upload presets → Add upload preset
-//    → Signing Mode: "Unsigned" → Save
-//    → Copier le "Upload preset name"
-// 4. Remplacer les deux valeurs ci-dessous :
 const CLOUDINARY_CLOUD_NAME = 'dhnae7dnu';
 const CLOUDINARY_UPLOAD_PRESET = 'efgmacqq';
 const CLOUDINARY_CONFIGURED = CLOUDINARY_CLOUD_NAME !== 'TON_CLOUD_NAME' && CLOUDINARY_UPLOAD_PRESET !== 'TON_UPLOAD_PRESET';
@@ -493,30 +494,65 @@ function uid(len = 6) {
   return s;
 }
 
-function getDeals() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_DEALS) || '[]'); }
-  catch (e) { return []; }
+// ============ DATA LAYER (Supabase) ============
+
+async function getDeals() {
+  const { data, error } = await sb.from('deals').select('*').order('created_at', { ascending: false });
+  if (error) { console.error('getDeals:', error); return []; }
+  return data.map(row => ({ ...row.data, id: row.id, _createdAt: row.created_at }));
 }
 
-function saveDeals(deals) {
-  localStorage.setItem(STORAGE_KEY_DEALS, JSON.stringify(deals));
+async function getDealById(id) {
+  const { data, error } = await sb.from('deals').select('*').eq('id', id).maybeSingle();
+  if (error || !data) return null;
+  return { ...data.data, id: data.id, _createdAt: data.created_at };
 }
 
-function getDealById(id) {
-  return getDeals().find(d => d.id === id);
+async function saveDeal(deal) {
+  // Strip internal fields before saving
+  const toSave = { ...deal };
+  delete toSave._createdAt;
+  delete toSave.step;
+  const { error } = await sb.from('deals').upsert({ id: deal.id, data: toSave });
+  if (error) { console.error('saveDeal:', error); throw error; }
+  return true;
 }
 
-function getSignatures(dealId) {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_SIGS_PREFIX + dealId) || '[]'); }
-  catch (e) { return []; }
+async function deleteDealRemote(dealId) {
+  const { error } = await sb.from('deals').delete().eq('id', dealId);
+  if (error) { console.error('deleteDeal:', error); throw error; }
+  return true;
 }
 
-function saveSignature(dealId, sig) {
-  const sigs = getSignatures(dealId);
-  sigs.push(sig);
-  localStorage.setItem(STORAGE_KEY_SIGS_PREFIX + dealId, JSON.stringify(sigs));
+async function getSignatures(dealId) {
+  const { data, error } = await sb.from('signatures').select('*').eq('deal_id', dealId).order('signed_at', { ascending: false });
+  if (error) { console.error('getSignatures:', error); return []; }
+  return data.map(row => ({
+    fullName: row.full_name,
+    org: row.org,
+    email: row.email,
+    phone: row.phone,
+    signatureData: row.signature_data,
+    signedAt: row.signed_at,
+    userAgent: row.user_agent
+  }));
 }
 
+async function saveSignature(dealId, sig) {
+  const { error } = await sb.from('signatures').insert({
+    deal_id: dealId,
+    full_name: sig.fullName,
+    org: sig.org || null,
+    email: sig.email,
+    phone: sig.phone || null,
+    signature_data: sig.signatureData,
+    user_agent: sig.userAgent || null
+  });
+  if (error) { console.error('saveSignature:', error); throw error; }
+  return true;
+}
+
+// Local-only: marque qu'un prospect a signé sur ce navigateur (UX, évite re-signature à chaque refresh)
 function isSignedLocally(dealId) {
   return !!localStorage.getItem(STORAGE_KEY_SIGNED_PREFIX + dealId);
 }
@@ -525,13 +561,19 @@ function markSignedLocally(dealId) {
   localStorage.setItem(STORAGE_KEY_SIGNED_PREFIX + dealId, '1');
 }
 
-function isAdmin() {
-  return localStorage.getItem(STORAGE_KEY_AUTH) === '1';
+// Auth via Supabase
+async function isAdmin() {
+  const { data: { session } } = await sb.auth.getSession();
+  return !!session;
 }
 
-function setAdmin(val) {
-  if (val) localStorage.setItem(STORAGE_KEY_AUTH, '1');
-  else localStorage.removeItem(STORAGE_KEY_AUTH);
+async function getCurrentUser() {
+  const { data: { user } } = await sb.auth.getUser();
+  return user;
+}
+
+async function signOutAdmin() {
+  await sb.auth.signOut();
 }
 
 function fmtMoney(n) {
@@ -612,7 +654,7 @@ function copyToClipboard(text, btn) {
 }
 
 // ============ ROUTER ============
-function route() {
+async function route() {
   const hash = window.location.hash || '#/';
   const app = document.getElementById('app');
   document.body.classList.remove('dark-mode');
@@ -621,10 +663,11 @@ function route() {
     renderLanding(app);
   } else if (hash.startsWith('#/admin')) {
     document.body.classList.add('dark-mode');
-    if (!isAdmin()) renderLogin(app);
-    else renderAdmin(app);
+    const authed = await isAdmin();
+    if (!authed) renderLogin(app);
+    else await renderAdmin(app);
   } else if (hash.startsWith('#/deal/')) {
-    renderDealPage(app);
+    await renderDealPage(app);
   } else {
     renderLanding(app);
   }
@@ -662,13 +705,20 @@ function renderHeader(activeAdmin = false) {
         </a>
         <nav class="topbar-nav">
           ${activeAdmin
-            ? `<a href="#/" onclick="setAdmin(false)">Déconnexion</a>`
+            ? `<a href="#" onclick="doLogout(event); return false;">Déconnexion</a>`
             : `<a href="https://elevatelocatif.ca/" target="_blank">Elevate Real Estate</a>
                <a href="#/admin">Opérateur</a>`}
         </nav>
       </div>
     </header>
   `;
+}
+
+async function doLogout(e) {
+  if (e) e.preventDefault();
+  await signOutAdmin();
+  window.location.hash = '#/';
+  await route();
 }
 
 // ============ LANDING ============
@@ -794,38 +844,70 @@ function renderLogin(app) {
     <div class="login-wrap">
       <div class="login-card">
         <h1>Accès opérateur</h1>
-        <p>Espace réservé à l'équipe Elevate. Saisis ton code d'accès pour gérer le deal flow.</p>
+        <p>Espace réservé à l'équipe Elevate. Connecte-toi avec ton courriel et ton mot de passe Supabase.</p>
         <form onsubmit="return doLogin(event)">
           <div id="loginError"></div>
           <div class="field">
-            <label>Code d'accès</label>
-            <input type="password" id="loginPwd" autofocus required />
+            <label>Courriel</label>
+            <input type="email" id="loginEmail" autocomplete="email" autofocus required />
           </div>
-          <button class="btn btn-primary btn-block" type="submit">Entrer ${icons.arrow}</button>
+          <div class="field">
+            <label>Mot de passe</label>
+            <input type="password" id="loginPwd" autocomplete="current-password" required />
+          </div>
+          <button class="btn btn-primary btn-block" id="loginBtn" type="submit">Entrer ${icons.arrow}</button>
         </form>
       </div>
     </div>
   `;
 }
 
-function doLogin(e) {
+async function doLogin(e) {
   e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
   const pwd = document.getElementById('loginPwd').value;
-  if (pwd === ADMIN_PASSWORD) {
-    setAdmin(true);
-    route();
-  } else {
-    document.getElementById('loginError').innerHTML = '<div class="login-error">Code incorrect.</div>';
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  errEl.innerHTML = '';
+  btn.textContent = 'Connexion...';
+  btn.disabled = true;
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+
+  if (error) {
+    errEl.innerHTML = '<div class="login-error">' + escapeHtml(error.message || 'Échec de la connexion') + '</div>';
+    btn.innerHTML = 'Entrer ' + icons.arrow;
+    btn.disabled = false;
+    return false;
   }
+  await route();
   return false;
 }
 
 // ============ ADMIN DASHBOARD ============
-function renderAdmin(app) {
-  const deals = getDeals().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  const totalSigs = deals.reduce((sum, d) => sum + getSignatures(d.id).length, 0);
+async function renderAdmin(app) {
+  // Loading state
+  app.innerHTML = `
+    ${renderHeader(true)}
+    <div class="container admin-wrap">
+      <div class="admin-head"><div><h1>Chargement...</h1></div></div>
+    </div>
+  `;
+
+  // Fetch deals + signatures counts in parallel
+  const deals = await getDeals();
+
+  // Fetch signature counts per deal (one query, group client-side)
+  const { data: allSigs, error: sigsErr } = await sb.from('signatures').select('deal_id');
+  const sigCounts = {};
+  if (!sigsErr && allSigs) {
+    allSigs.forEach(s => { sigCounts[s.deal_id] = (sigCounts[s.deal_id] || 0) + 1; });
+  }
+
+  const totalSigs = Object.values(sigCounts).reduce((a, b) => a + b, 0);
   const totalGMV = deals.reduce((sum, d) => sum + (Number(d.priceCession) || Number(d.priceAsk) || 0), 0);
   const totalFees = deals.reduce((sum, d) => sum + (Number(d.cessionFee) || 0), 0);
+  const user = await getCurrentUser();
 
   app.innerHTML = `
     ${renderHeader(true)}
@@ -833,7 +915,7 @@ function renderAdmin(app) {
       <div class="admin-head">
         <div>
           <h1>Deal Pipeline</h1>
-          <p>Gestion centralisée du deal flow — création, partage, signatures.</p>
+          <p>Connecté en tant que <strong>${escapeHtml(user?.email || '')}</strong> · Données centralisées Supabase</p>
         </div>
         <button class="btn btn-primary btn-lg" onclick="openWizard()">${icons.plus} Nouveau deal</button>
       </div>
@@ -860,7 +942,7 @@ function renderAdmin(app) {
       ${deals.length === 0 ? `
         <div class="empty-state">
           <h3>Aucun deal pour le moment.</h3>
-          <p>Crée ton premier deal en 5 étapes guidées — moins de 3 minutes.</p>
+          <p>Crée ton premier deal en quelques étapes guidées — moins de 3 minutes.</p>
           <button class="btn btn-primary" onclick="openWizard()">${icons.plus} Créer un deal</button>
         </div>
       ` : `
@@ -874,7 +956,7 @@ function renderAdmin(app) {
             <div></div>
           </div>
           ${deals.map(d => {
-            const sigs = getSignatures(d.id);
+            const sigCount = sigCounts[d.id] || 0;
             return `
               <div class="deal-row">
                 <div class="deal-num">#${d.id}</div>
@@ -885,12 +967,12 @@ function renderAdmin(app) {
                 <div class="deal-cap col-loc">${escapeHtml(d.city || '—')}</div>
                 <div class="deal-price col-price">${fmtMoneyShort(d.priceCession || d.priceAsk)}</div>
                 <div class="deal-sigs">
-                  <strong>${sigs.length}</strong> ${sigs.length === 1 ? 'signature' : 'signatures'}
+                  <strong>${sigCount}</strong> ${sigCount === 1 ? 'signature' : 'signatures'}
                 </div>
                 <div class="deal-actions">
                   <button class="icon-btn" onclick="shareLink('${d.id}')" title="Copier le lien">${icons.copy}</button>
                   <button class="icon-btn" onclick="openSignatures('${d.id}')" title="Voir les signatures">${icons.users}</button>
-                  <button class="icon-btn" onclick="window.open('#/deal/${d.id}?d=' + encodeDeal(getDealById('${d.id}')), '_blank')" title="Prévisualiser">${icons.external}</button>
+                  <button class="icon-btn" onclick="window.open('#/deal/${d.id}', '_blank')" title="Prévisualiser">${icons.external}</button>
                   <button class="icon-btn" onclick="deleteDeal('${d.id}')" title="Supprimer">${icons.trash}</button>
                 </div>
               </div>
@@ -903,20 +985,19 @@ function renderAdmin(app) {
 }
 
 function shareLink(dealId) {
-  const deal = getDealById(dealId);
-  if (!deal) return;
-  const encoded = encodeDeal(deal);
-  const url = `${window.location.origin}${window.location.pathname}#/deal/${dealId}?d=${encoded}`;
+  const url = `${window.location.origin}${window.location.pathname}#/deal/${dealId}`;
   copyToClipboard(url);
 }
 
-function deleteDeal(dealId) {
+async function deleteDeal(dealId) {
   if (!confirm('Supprimer ce deal ? Les signatures associées seront aussi supprimées. Cette action est irréversible.')) return;
-  const deals = getDeals().filter(d => d.id !== dealId);
-  saveDeals(deals);
-  localStorage.removeItem(STORAGE_KEY_SIGS_PREFIX + dealId);
-  renderAdmin(document.getElementById('app'));
-  showToast('Deal supprimé');
+  try {
+    await deleteDealRemote(dealId);
+    await renderAdmin(document.getElementById('app'));
+    showToast('Deal supprimé');
+  } catch (e) {
+    showToast('Erreur: ' + (e.message || 'suppression échouée'));
+  }
 }
 
 // ============ WIZARD : CREATE DEAL ============
@@ -945,6 +1026,10 @@ function openWizard(existingDeal = null) {
 function closeWizard() {
   wizardState = null;
   document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+  // Refresh admin dashboard if open
+  if (window.location.hash.startsWith('#/admin')) {
+    renderAdmin(document.getElementById('app'));
+  }
 }
 
 function renderWizard() {
@@ -1000,7 +1085,7 @@ function renderWizard() {
         </div>
       ` : `
         <div class="modal-foot">
-          <button class="btn btn-ghost" onclick="closeWizard(); renderAdmin(document.getElementById('app'));">Retour au dashboard</button>
+          <button class="btn btn-ghost" onclick="closeWizard();">Retour au dashboard</button>
           <button class="btn btn-primary" onclick="openWizard()">${icons.plus} Créer un autre deal</button>
         </div>
       `}
@@ -1403,8 +1488,7 @@ function wizardStep4() {
 
 function wizardStep5() {
   const deal = wizardState;
-  const encoded = encodeDeal(deal);
-  const url = `${window.location.origin}${window.location.pathname}#/deal/${deal.id}?d=${encoded}`;
+  const url = `${window.location.origin}${window.location.pathname}#/deal/${deal.id}`;
   const mailSubject = encodeURIComponent(`Opportunité confidentielle · ${deal.title}`);
   const mailBody = encodeURIComponent(
 `Bonjour,
@@ -1439,12 +1523,12 @@ ${deal.contactOrg || ''}`);
       </div>
     </div>
     <div class="hint" style="text-align:center; margin-top:24px;">
-      Le deal est sauvegardé dans ton dashboard. Tu peux le retrouver, le modifier ou voir les signatures à tout moment.
+      Le deal est sauvegardé dans Supabase et accessible depuis n'importe quel appareil connecté à ton compte admin.
     </div>
   `;
 }
 
-function wizardNext() {
+async function wizardNext() {
   // Validate current step
   if (wizardState.step === 0) {
     if (!wizardState.title || !wizardState.assetType || !wizardState.city) {
@@ -1470,14 +1554,14 @@ function wizardNext() {
       showToast('Le nom du contact est requis.');
       return;
     }
-    // Save deal
-    const deals = getDeals();
-    const existing = deals.findIndex(d => d.id === wizardState.id);
-    const toSave = { ...wizardState };
-    delete toSave.step;
-    if (existing >= 0) deals[existing] = toSave;
-    else deals.push(toSave);
-    saveDeals(deals);
+    // Save deal to Supabase
+    try {
+      showToast('Sauvegarde en cours...');
+      await saveDeal(wizardState);
+    } catch (e) {
+      showToast('Erreur de sauvegarde: ' + (e.message || 'réessaie'));
+      return;
+    }
   }
   wizardState.step++;
   renderWizard();
@@ -1497,9 +1581,9 @@ function downloadQR(url, dealId) {
 }
 
 // ============ SIGNATURES PANEL ============
-function openSignatures(dealId) {
-  const deal = getDealById(dealId);
-  const sigs = getSignatures(dealId);
+async function openSignatures(dealId) {
+  const [deal, sigs] = await Promise.all([getDealById(dealId), getSignatures(dealId)]);
+  if (!deal) { showToast('Deal introuvable'); return; }
 
   const backdrop = document.createElement('div');
   backdrop.className = 'modal-backdrop';
@@ -1545,9 +1629,9 @@ function openSignatures(dealId) {
   document.body.appendChild(backdrop);
 }
 
-function exportSignaturesCSV(dealId) {
-  const deal = getDealById(dealId);
-  const sigs = getSignatures(dealId);
+async function exportSignaturesCSV(dealId) {
+  const [deal, sigs] = await Promise.all([getDealById(dealId), getSignatures(dealId)]);
+  if (!deal || !sigs) { showToast('Erreur de chargement'); return; }
   const header = 'Nom,Organisation,Courriel,Téléphone,Date signature,Deal\n';
   const rows = sigs.map(s => [
     s.fullName, s.org || '', s.email, s.phone || '',
@@ -1564,7 +1648,7 @@ function exportSignaturesCSV(dealId) {
 }
 
 // ============ DEAL PUBLIC PAGE ============
-function renderDealPage(app) {
+async function renderDealPage(app) {
   const hash = window.location.hash;
   const match = hash.match(/^#\/deal\/([A-Z0-9]+)(\?d=(.+))?$/i);
   if (!match) {
@@ -1573,15 +1657,21 @@ function renderDealPage(app) {
   }
   const dealId = match[1];
   const encoded = match[3];
+
+  // Loading state
+  app.innerHTML = `${renderHeader()}<div class="container" style="padding:96px 0; text-align:center;"><div class="eyebrow">Chargement du dossier...</div></div>`;
+
   let deal = null;
+  // Legacy support: old encoded URLs still work as fallback
   if (encoded) deal = decodeDeal(encoded);
-  if (!deal) deal = getDealById(dealId);
+  if (!deal) deal = await getDealById(dealId);
   if (!deal) {
     app.innerHTML = `${renderHeader()}<div class="container" style="padding:96px 0; text-align:center;"><h1 class="display" style="font-size:48px;">Deal introuvable.</h1><p style="margin-top:16px;">Ce lien a expiré ou n'est plus disponible. Contacte l'opérateur Elevate.</p></div>`;
     return;
   }
 
-  if (isSignedLocally(dealId) || isAdmin()) {
+  const authed = await isAdmin();
+  if (isSignedLocally(dealId) || authed) {
     renderDealDossier(app, deal);
   } else {
     renderDealNDA(app, deal);
@@ -1767,7 +1857,7 @@ function clearSignaturePad() {
   sigPadHasInk = false;
 }
 
-function submitNDA(e, dealId) {
+async function submitNDA(e, dealId) {
   e.preventDefault();
   const fullName = document.getElementById('ndaFullName').value.trim();
   const org = document.getElementById('ndaOrg').value.trim();
@@ -1786,25 +1876,35 @@ function submitNDA(e, dealId) {
 
   const canvas = document.getElementById('sigPad');
   const signatureData = canvas.toDataURL('image/png');
+  const dealTitle = document.querySelector('.deal-hero h1')?.textContent || dealId;
 
   const sig = {
-    dealId,
     fullName,
     org,
     email,
     phone,
     signatureData,
     signedAt: Date.now(),
-    userAgent: navigator.userAgent,
-    ip: 'client-side'
+    userAgent: navigator.userAgent
   };
 
-  // Save locally (admin will see it when they open the same browser)
-  saveSignature(dealId, sig);
+  // UI feedback
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if (submitBtn) { submitBtn.textContent = 'Enregistrement...'; submitBtn.disabled = true; }
+
+  // Save signature to Supabase (await this — it's the critical path)
+  try {
+    await saveSignature(dealId, sig);
+  } catch (err) {
+    showToast('Erreur sauvegarde — réessaie. ' + (err.message || ''));
+    if (submitBtn) { submitBtn.innerHTML = 'Signer et accéder au dossier ' + icons.arrow; submitBtn.disabled = false; }
+    return false;
+  }
+
+  // Mark as signed locally (avoids re-signing on refresh)
   markSignedLocally(dealId);
 
-  // Envoi notification courriel via Formspree
-  const dealTitle = document.querySelector('.deal-hero h1')?.textContent || dealId;
+  // Send Formspree notification in parallel (non-blocking)
   fetch('https://formspree.io/f/xkoeopyz', {
     method: 'POST',
     headers: {
@@ -1821,7 +1921,7 @@ function submitNDA(e, dealId) {
       signataire_telephone: phone || 'Non précisé',
       date_signature: new Date().toLocaleString('fr-CA', { timeZone: 'America/Toronto' })
     })
-  }).catch(err => console.log('Notification non envoyée:', err));
+  }).catch(err => console.log('Notification Formspree non envoyée:', err));
 
   showToast('Signature enregistrée — déverrouillage du dossier...');
   setTimeout(() => route(), 600);
