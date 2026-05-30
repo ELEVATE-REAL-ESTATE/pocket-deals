@@ -1,8 +1,13 @@
-# Rafraîchir les données de marché (`market-data.js`)
+# Rafraîchir les données de marché (`packages/config/src/index.js`)
 
-Procédure pour garder l'analyseur à jour. Tout vit dans **`market-data.js`** — un seul fichier.
+Procédure pour garder l'analyseur à jour. Tout vit dans **`packages/config/src/index.js`**
+(le paquet `@elevate/config`, `export const MARKET_DATA`) — un seul fichier.
 Chaque bloc porte un `asOf` (date de validité) et une `source`. Après une mise à jour,
 **bump `meta.lastUpdated`** à la date du jour.
+
+> Note (post-bascule) : l'ancien `market-data.js` à la racine a été retiré ; la source
+> unique est désormais le paquet `@elevate/config`. L'app `apps/analyzer` l'importe,
+> et le build committé `/analyzer/` est régénéré via `pnpm --filter analyzer build`.
 
 Cette procédure est conçue pour être exécutée :
 - **manuellement** (ouvrir une session Claude Code et demander « rafraîchis les données de marché ») ; ou
@@ -20,7 +25,7 @@ Cette procédure est conçue pour être exécutée :
 | **CMB 5 ans** | *EXACT* — feed temps réel GreenBirch Capital / theFinancials (`rates.cmbWidgetUrl`), ligne « CMB 5-Year ». Repli : oblig. 5 ans + `rates.cmbSpread` si le feed est inaccessible. | À chaque chargement + bouton ↻ |
 | **Taux hypothécaire suggéré** | base (oblig. ou CMB selon programme) + `rates.spreads[programme].spread` | idem |
 
-À ajuster manuellement dans `market-data.js` quand le marché bouge :
+À ajuster manuellement dans `packages/config/src/index.js` quand le marché bouge :
 - `rates.cmbSpread` — écart CMB de **repli** seulement (si le feed GreenBirch tombe ; ~25–50 pb)
 - `rates.spreads[*].spread` — écart hypothécaire par programme (voir §4)
 

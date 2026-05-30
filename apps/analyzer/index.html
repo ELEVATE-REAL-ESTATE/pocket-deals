@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Elevate — Analyseur de transactions immobilières. Underwriting multilogement avec paramètres SCHL à jour." />
+<title>Elevate · Analyseur de transactions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="container topbar-inner">
+    <div class="brand">Elevate<small>Analyseur de transactions</small></div>
+    <a class="eyebrow" href="../index.html">← Deal Room</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <h1 class="display">Analysez<br><span class="display-italic">comme un prêteur.</span></h1>
+    <p class="lede">Underwriting multilogement à la québécoise — prix par porte et par pied carré, taux de capitalisation par région et type d'actif, dépenses normalisées SCHL, et prêt maximal selon le ratio de couverture <em>et</em> la valeur. Calcul en direct.</p>
+    <div class="rateboard" id="rateboard">
+      <div class="rate-item"><span>Taux directeur</span><b class="mono" id="r-policy">—</b></div>
+      <div class="rate-item"><span>Préférentiel</span><b class="mono" id="r-prime">—</b></div>
+      <div class="rate-item"><span>Oblig. 5 ans</span><b class="mono" id="r-goc">—</b></div>
+      <div class="rate-item"><span>CMB 5 ans <em id="cmb-est">est.</em></span><b class="mono" id="r-cmb">—</b></div>
+      <div class="rate-item meta"><span class="live-dot" id="live-dot"></span><span id="r-asof">—</span><button type="button" id="refresh-btn" title="Rafraîchir les taux">↻</button></div>
+    </div>
+    <div class="datafresh" id="datafresh">
+      <span class="pill" id="src-boc">Banque du Canada —</span>
+      <span class="pill" id="src-cmb">CMB —</span>
+      <span class="pill" id="fresh-cap">Cap rates —</span>
+      <span class="pill" id="fresh-schl">SCHL —</span>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <div class="work">
+
+    <!-- ENTRÉES -->
+    <form class="panel" id="form" autocomplete="off">
+      <div class="panel-head"><h2>Hypothèses</h2><span class="eyebrow">Montants annuels</span></div>
+      <div class="panel-body">
+
+        <div class="section-label">Immeuble</div>
+        <div class="field-row">
+          <div class="field">
+            <label for="region">Région / marché</label>
+            <select id="region"></select>
+          </div>
+          <div class="field">
+            <label for="asset">Type d'actif</label>
+            <select id="asset"></select>
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label for="year">Année construction</label>
+            <input type="number" id="year" value="1985" min="1850" max="2030" step="1">
+          </div>
+          <div class="field">
+            <label for="units">Nombre d'unités</label>
+            <input type="number" id="units" value="12" min="1" step="1">
+          </div>
+          <div class="field">
+            <label for="sqft">Superficie</label>
+            <div class="input-suffix"><span>pi²</span><input type="number" id="sqft" value="11000" min="0" step="100"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="construction">Type de construction</label>
+          <select id="construction"></select>
+          <div class="hint">Détermine la réserve structurale normalisée SCHL</div>
+        </div>
+        <div class="field">
+          <label for="price">Prix d'achat</label>
+          <div class="input-prefix"><span>$</span><input type="number" id="price" value="2400000" min="0" step="1000"></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="closing">Frais d'acquisition</label>
+            <div class="input-suffix"><span>%</span><input type="number" id="closing" value="2.5" min="0" step="0.1"></div>
+            <div class="hint">Droits de mutation, notaire, inspection</div>
+          </div>
+          <div class="field">
+            <label for="capex">Capex initial</label>
+            <div class="input-prefix"><span>$</span><input type="number" id="capex" value="0" min="0" step="1000"></div>
+            <div class="hint">Travaux jour 1</div>
+          </div>
+        </div>
+
+        <div class="section-label">Revenus</div>
+        <div class="field-row">
+          <div class="field">
+            <label for="revenue">Revenus de loyers (annuel)</label>
+            <div class="input-prefix"><span>$</span><input type="number" id="revenue" value="288000" min="0" step="1000"></div>
+          </div>
+          <div class="field">
+            <label for="other">Autres revenus</label>
+            <div class="input-prefix"><span>$</span><input type="number" id="other" value="24000" min="0" step="500"></div>
+            <div class="hint">Stationnement, buanderie, rangement</div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="vacancy">Inoccupation & mauvaises créances</label>
+          <div class="input-suffix"><span>%</span><input type="number" id="vacancy" value="4" min="0" step="0.5"></div>
+        </div>
+
+        <div class="section-label">Dépenses d'exploitation
+          <button type="button" id="normalize" title="Appliquer les normes d'underwriting SCHL">Normaliser SCHL</button>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="taxes">Taxes (mun. + scolaire)</label><div class="input-prefix"><span>$</span><input type="number" id="taxes" value="34000" min="0" step="500"></div></div>
+          <div class="field"><label for="insurance">Assurances</label><div class="input-prefix"><span>$</span><input type="number" id="insurance" value="11000" min="0" step="250"></div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="energy">Énergie (chauffage, électr. communs)</label><div class="input-prefix"><span>$</span><input type="number" id="energy" value="22000" min="0" step="500"></div></div>
+          <div class="field"><label for="water">Eau, déneigement, terrain</label><div class="input-prefix"><span>$</span><input type="number" id="water" value="9000" min="0" step="250"></div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="repairs">Entretien & réparations</label><div class="input-prefix"><span>$</span><input type="number" id="repairs" value="18000" min="0" step="500"></div><div class="hint schl" id="h-repairs">—</div></div>
+          <div class="field"><label for="caretaking">Conciergerie</label><div class="input-prefix"><span>$</span><input type="number" id="caretaking" value="9000" min="0" step="500"></div><div class="hint schl" id="h-caretaking">—</div></div>
+        </div>
+        <div class="sublabel">Réserve de remplacement — selon les biens & équipements présents</div>
+        <div class="checks">
+          <label><input type="checkbox" id="eq-appliances"> Électroménagers fournis (cuisinière, frigo)</label>
+          <label><input type="checkbox" id="eq-heatpump"> Thermopompes / climatisation</label>
+          <label><input type="checkbox" id="eq-elevator"> Ascenseur</label>
+        </div>
+        <div class="field-row-3">
+          <div class="field"><label for="mgmt">Gestion</label><div class="input-suffix"><span>% RBE</span><input type="number" id="mgmt" value="5" min="0" step="0.5"></div></div>
+          <div class="field"><label for="reserve">Réserve remplac.</label><div class="input-suffix"><span>$/porte</span><input type="number" id="reserve" value="300" min="0" step="50"></div><div class="hint schl" id="h-reserve">—</div></div>
+          <div class="field"><label for="misc">Prof. & divers</label><div class="input-prefix"><span>$</span><input type="number" id="misc" value="6000" min="0" step="250"></div></div>
+        </div>
+
+        <div class="section-label">Financement</div>
+        <div class="field">
+          <label for="program">Programme</label>
+          <select id="program"></select>
+          <div class="hint" id="program-hint"></div>
+        </div>
+        <div class="field-row-3">
+          <div class="field"><label for="rate">Taux d'intérêt</label><div class="input-suffix"><span>%</span><input type="number" id="rate" value="5.25" min="0" step="0.05"></div><div class="hint schl" id="h-rate">—</div></div>
+          <div class="field"><label for="amort">Amortissement</label><div class="input-suffix"><span>ans</span><input type="number" id="amort" value="40" min="1" step="1"></div></div>
+          <div class="field"><label for="premium">Prime SCHL</label><div class="input-suffix"><span>%</span><input type="number" id="premium" value="4.0" min="0" step="0.1"></div></div>
+        </div>
+
+        <div class="section-label">Croissance & revente</div>
+        <div class="field-row-3">
+          <div class="field"><label for="hold">Détention</label><div class="input-suffix"><span>ans</span><input type="number" id="hold" value="5" min="1" max="40" step="1"></div></div>
+          <div class="field"><label for="rentg">Croiss. loyers</label><div class="input-suffix"><span>%</span><input type="number" id="rentg" value="3" step="0.5"></div></div>
+          <div class="field"><label for="expg">Croiss. dépenses</label><div class="input-suffix"><span>%</span><input type="number" id="expg" value="2.5" step="0.5"></div></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="exitcap">Cap de sortie</label><div class="input-suffix"><span>%</span><input type="number" id="exitcap" placeholder="marché" min="0" step="0.1"></div><div class="hint">Vide = cap marché suggéré</div></div>
+          <div class="field"><label for="selling">Frais de vente</label><div class="input-suffix"><span>%</span><input type="number" id="selling" value="4" min="0" step="0.5"></div></div>
+        </div>
+
+      </div>
+    </form>
+
+    <!-- RÉSULTATS -->
+    <div class="results">
+
+      <div class="headline">
+        <div class="verdict-row">
+          <span class="eyebrow" style="color:rgba(244,240,230,0.55)">Année 1 · avant impôt</span>
+          <span class="verdict" id="verdict">—</span>
+        </div>
+        <div class="cf-label">Flux de trésorerie annuel</div>
+        <div class="cf-value mono" id="cashflow">—</div>
+        <div class="cf-sub" id="cashflow-sub">—</div>
+      </div>
+
+      <!-- Évaluation -->
+      <div class="group">
+        <h3>Évaluation</h3>
+        <div class="metrics">
+          <div class="metric"><div class="m-label">Prix / porte</div><div class="m-value sm mono" id="m-door">—</div><div class="m-note" id="n-door">—</div></div>
+          <div class="metric"><div class="m-label">Prix / pi²</div><div class="m-value sm mono" id="m-sqft">—</div><div class="m-note">superficie brute</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-cap"></span>Cap rate réel</div><div class="m-value sm mono" id="m-cap">—</div><div class="m-note" id="n-cap">—</div></div>
+          <div class="metric"><div class="m-label">Cap marché suggéré</div><div class="m-value sm mono" id="m-capmkt">—</div><div class="m-note" id="n-capmkt">par région + actif</div></div>
+          <div class="metric wide" style="border-top:1px solid var(--line-soft);"><div class="m-label">Valeur implicite au cap marché</div>
+            <div style="display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap;">
+              <div class="m-value sm mono" id="m-implied">—</div>
+              <div class="m-note" id="n-implied" style="margin-bottom:5px;">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rendement -->
+      <div class="group">
+        <h3>Rendement</h3>
+        <div class="metrics">
+          <div class="metric"><div class="m-label"><span class="dot" id="d-noi"></span>RBE (NOI)</div><div class="m-value mono" id="m-noi">—</div><div class="m-note" id="n-noi">—</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-dscr"></span>RCD (DSCR)</div><div class="m-value mono" id="m-dscr">—</div><div class="m-note" id="n-dscr">RBE ÷ service dette</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-coc"></span>Rend. comptant</div><div class="m-value mono" id="m-coc">—</div><div class="m-note">cash-on-cash an 1</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-em"></span>Mult. d'équité</div><div class="m-value mono" id="m-em">—</div><div class="m-note"><span id="em-hold">5</span> ans · TRI <span id="m-irr" style="color:var(--ink-soft)">—</span></div></div>
+        </div>
+      </div>
+
+      <!-- Financement -->
+      <div class="group">
+        <h3>Capacité d'emprunt · <span id="prog-name" style="color:var(--ink-soft)">—</span></h3>
+        <table class="loan-table">
+          <tbody>
+            <tr><td>Prêt max — valeur <span class="sub" id="ltv-lbl"></span></td><td class="mono" id="l-ltv">—</td></tr>
+            <tr><td>Prêt max — couverture <span class="sub" id="dcr-lbl"></span></td><td class="mono" id="l-dcr">—</td></tr>
+            <tr class="hl"><td>Prêt retenu <span class="sub" id="bind-lbl"></span></td><td class="mono" id="l-bind">—</td></tr>
+            <tr><td>Prime SCHL financée</td><td class="mono" id="l-prem">—</td></tr>
+            <tr><td>Service de dette annuel</td><td class="mono" id="l-debt">—</td></tr>
+            <tr class="hl"><td>Mise de fonds requise <span class="sub" id="dp-lbl"></span></td><td class="mono" id="l-dp">—</td></tr>
+          </tbody>
+        </table>
+        <div class="bars">
+          <div class="bar">
+            <div class="bar-head"><span>Ratio de couverture obtenu</span><span class="mono" id="bar-dscr-v">—</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bar-dscr"></div><div class="bar-cap" id="bar-dscr-cap"></div></div>
+          </div>
+          <div class="bar">
+            <div class="bar-head"><span>Ratio de dépenses (% RBE potentiel)</span><span class="mono" id="bar-exp-v">—</span></div>
+            <div class="bar-track"><div class="bar-fill" id="bar-exp"></div></div>
+          </div>
+        </div>
+        <div class="flag" id="flag-exp"></div>
+      </div>
+
+      <!-- Pro forma -->
+      <div class="group">
+        <h3>Pro forma — période de détention</h3>
+        <table class="pf-table">
+          <thead><tr><th>Année</th><th>RBE</th><th>Service dette</th><th>Flux</th><th>Solde prêt</th></tr></thead>
+          <tbody id="pf-body"></tbody>
+        </table>
+      </div>
+
+      <p class="disclaimer">
+        Estimations de pré-sélection — ne constitue pas un conseil financier. Le RCD et le rendement comptant sont à l'année 1, avant impôt.
+        Les <strong>taux de capitalisation suggérés</strong> sont des repères de marché Q4 2025 (Colliers, CBRE, Cushman &amp; Wakefield) par région et type d'actif — à valider avec un courtier.
+        Les <strong>paramètres SCHL</strong> (RPV/LTV, RCD/DCR, amortissement) reflètent MLI Standard et MLI Select 2025-2026 ; la prime réelle dépend du pointage et du RPV.
+        Le prêt retenu est le moindre du prêt selon la valeur et du prêt selon la couverture.
+      </p>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <span class="foot-note">ELEVATE · ANALYSEUR DE TRANSACTIONS</span>
+    <span class="foot-note" id="foot-updated">Données de marché</span>
+  </div>
+</footer>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

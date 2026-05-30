@@ -1,0 +1,20 @@
+{
+  "name": "analyzer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Elevate Deal Analyzer — app Vite (consomme @elevate/domain, config, ui)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@elevate/domain": "workspace:*",
+    "@elevate/config": "workspace:*",
+    "@elevate/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}
