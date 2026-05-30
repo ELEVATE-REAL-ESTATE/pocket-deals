@@ -55,11 +55,34 @@ pnpm --filter @elevate/domain typecheck
 
 ---
 
-## PR 2 — Brancher l'analyseur sur le moteur partagé (seule étape qui touche le comportement)
+## PR 2 — Brancher l'analyseur sur le moteur partagé ✅ FAIT
 
 But : `analyzer.html` ne contient plus la *logique* de calcul ; il lit le DOM,
 appelle `ElevateDomain.underwrite(...)`, puis affiche. La logique vit désormais
 **uniquement** dans `@elevate/domain`.
+
+**Ce qui a été fait** (Node absent sur la machine → pont transcrit à la main au
+lieu de copié depuis `dist/`) :
+- `vendor/elevate-domain.global.js` — transcription fidèle du moteur (expose
+  `window.ElevateDomain`). En-tête « ne pas éditer ; régénérer via pnpm build ».
+- `analyzer.html` : ajout du `<script src="vendor/elevate-domain.global.js">`,
+  suppression des 4 fonctions inline (`mortPayment`, `loanFromPayment`,
+  `remainingBalance`, `irr`), et `calc()` remplacé par
+  `readDealInputs()` (DOM → DealInputs) + `ElevateDomain.underwrite()` + un
+  adaptateur qui ré-expose le résultat sous les mêmes noms → **bloc de rendu
+  inchangé au caractère près**.
+
+**Quand Node sera installé** — régénérer le bundle pour garantir la parité :
+```powershell
+pnpm --filter @elevate/domain build
+copy packages\domain\dist\index.global.js vendor\elevate-domain.global.js
+```
+(ou ajouter un script `build:analyzer` qui enchaîne build + copie).
+
+**Vérification anti-régression** : ouvrir `analyzer.html`, comparer les métriques
+aux golden (NOI 171 944 $, cap 7,16 %, RCD 1,35, CoC 10,7 %, multiple 5,11×).
+Aucune différence attendue — le moteur est identique et `calc()` ne contient plus
+aucune formule financière.
 
 1. Construire le bundle navigateur :
    ```powershell

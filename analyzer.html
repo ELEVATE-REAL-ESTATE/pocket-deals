@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="market-data.js"></script>
+<script src="vendor/elevate-domain.global.js"></script>
 <style>
 :root {
   --cream: #F4F0E6; --cream-deep: #EBE4D2; --paper: #FBF8F0;
@@ -487,28 +488,7 @@ async function refreshRates() {
 }
 function applySuggestedRate() { $('rate').value = (suggestedRate()*100).toFixed(2); }
 
-// ---- Finance ----
-function mortPayment(principal, annualRate, years) {
-  const n = years*12; if (n<=0) return 0;
-  const r = annualRate/12;
-  return r===0 ? principal/n : principal*r/(1-Math.pow(1+r,-n));
-}
-function loanFromPayment(monthlyPmt, annualRate, years) {
-  const n = years*12; if (n<=0) return 0;
-  const r = annualRate/12;
-  return r===0 ? monthlyPmt*n : monthlyPmt*(1-Math.pow(1+r,-n))/r;
-}
-function remainingBalance(principal, annualRate, years, monthsPaid) {
-  const r = annualRate/12, pmt = mortPayment(principal, annualRate, years);
-  if (r===0) return Math.max(0, principal - pmt*monthsPaid);
-  return Math.max(0, principal*Math.pow(1+r,monthsPaid) - pmt*(Math.pow(1+r,monthsPaid)-1)/r);
-}
-function irr(cf) {
-  const npv = rate => cf.reduce((a,c,t)=>a + c/Math.pow(1+rate,t), 0);
-  let lo=-0.9999, hi=10; if (npv(lo)*npv(hi) > 0) return null;
-  for (let i=0;i<200;i++){ const m=(lo+hi)/2, v=npv(m); if(Math.abs(v)<1e-6) return m; (npv(lo)*v<0)?(hi=m):(lo=m); }
-  return (lo+hi)/2;
-}
+// ---- Finance : le moteur vit désormais dans @elevate/domain (window.ElevateDomain) ----
 const setDot = (id,s) => $(id).className = 'dot '+s;
 
 // ---- Populate selects ----
@@ -546,83 +526,47 @@ $('normalize').addEventListener('click', () => {
 ['construction','eq-appliances','eq-heatpump','eq-elevator'].forEach(id =>
   $(id).addEventListener('change', calc));
 
-function calc() {
+// Adaptateur DOM → DealInputs (résout région+actif → cap marché, programme → params)
+function readDealInputs() {
   const region = REGIONS[$('region').value];
   const asset  = ASSETS[$('asset').value];
   const prog   = PROGRAMS[$('program').value];
-
-  const price = num('price');
-  const units = Math.max(1, num('units'));
-  const sqft  = num('sqft');
-  const closingPct = num('closing')/100;
-  const capex = num('capex');
-
-  // Revenus
-  const gross = num('revenue') + num('other');
-  const vacancyPct = num('vacancy')/100;
-  const egi = gross*(1-vacancyPct);              // revenu brut effectif (RBE potentiel = gross)
-
-  // Dépenses par catégorie
-  const exp = {
-    taxes: num('taxes'), insurance: num('insurance'), energy: num('energy'),
-    water: num('water'), repairs: num('repairs'), caretaking: num('caretaking'),
-    mgmt: egi*(num('mgmt')/100), reserve: units*num('reserve'), misc: num('misc'),
+  return {
+    price: num('price'), units: Math.max(1, num('units')), sqft: num('sqft'),
+    closingPct: num('closing'), capex: num('capex'),
+    grossRevenue: num('revenue') + num('other'), vacancyPct: num('vacancy'),
+    expenses: {
+      taxes: num('taxes'), insurance: num('insurance'), energy: num('energy'),
+      water: num('water'), repairs: num('repairs'), caretaking: num('caretaking'),
+      mgmtPct: num('mgmt'), reservePerDoor: num('reserve'), misc: num('misc'),
+    },
+    program: { maxLTV: prog.maxLTV, minDCR: prog.minDCR, maxAmort: prog.maxAmort, premium: prog.premium },
+    rate: num('rate'), amort: num('amort'), premiumPct: num('premium'),
+    capMktPct: (region.baseCap + asset.spread) * 100,
+    hold: num('hold'), rentGrowthPct: num('rentg'), expenseGrowthPct: num('expg'),
+    exitCapPct: num('exitcap'), sellingPct: num('selling'),
   };
-  const opex = Object.values(exp).reduce((a,b)=>a+b,0);
-  const noi = egi - opex;
-  const expRatio = gross>0 ? opex/gross : 0;
+}
 
-  // Cap rates
-  const capRate = price>0 ? noi/price : 0;
-  const capMkt = region.baseCap + asset.spread;     // cap marché suggéré
-  const impliedValue = capMkt>0 ? noi/capMkt : 0;   // valeur au cap marché
+function calc() {
+  const prog  = PROGRAMS[$('program').value];
+  const input = readDealInputs();
 
-  // ---- Capacité d'emprunt ----
-  const rate = num('rate')/100;
-  const amort = Math.min(num('amort'), prog.maxAmort);
-  const premPct = num('premium')/100;
+  // ★ Moteur partagé — toute la logique financière vit dans @elevate/domain
+  const r = ElevateDomain.underwrite(input);
 
-  const loanLTV = price*prog.maxLTV;                                   // selon la valeur
-  const maxAnnualDebt = noi/prog.minDCR;                               // selon la couverture
-  const loanDCR = Math.max(0, loanFromPayment(maxAnnualDebt/12, rate, amort));
-  const baseLoan = Math.max(0, Math.min(loanLTV, loanDCR));            // prêt retenu
-  const binding = loanDCR < loanLTV ? 'couverture' : 'valeur';
-  const premium = (prog.premium>0 ? baseLoan*premPct : 0);
-  const financed = baseLoan + premium;                                 // prime capitalisée
-  const annualDebt = mortPayment(financed, rate, amort)*12;
-
-  const equityIn = price - baseLoan + price*closingPct + capex;        // comptant requis
-  const downPctEff = price>0 ? (price-baseLoan)/price : 0;
-  const dscr = annualDebt>0 ? noi/annualDebt : Infinity;
-  const cf1 = noi - annualDebt;
-  const coc = equityIn>0 ? cf1/equityIn : 0;
-
-  // ---- Pro forma + revente ----
-  const hold = Math.max(1, Math.round(num('hold')));
-  const rentG = num('rentg')/100, expG = num('expg')/100;
-  const exitCap = (num('exitcap')>0 ? num('exitcap')/100 : capMkt);
-  const sellingPct = num('selling')/100;
-
-  const rows=[]; const flows=[-equityIn]; let saleProceeds=0;
-  for (let y=1; y<=hold; y++) {
-    const rev = egi*Math.pow(1+rentG,y-1);
-    const ex  = opex*Math.pow(1+expG,y-1);
-    const yNoi = rev-ex, yCf = yNoi-annualDebt;
-    const bal = remainingBalance(financed, rate, amort, y*12);
-    let flow = yCf;
-    if (y===hold) {
-      const fwdNoi = egi*Math.pow(1+rentG,y) - opex*Math.pow(1+expG,y);
-      const grossSale = exitCap>0 ? fwdNoi/exitCap : 0;
-      saleProceeds = grossSale*(1-sellingPct) - bal;
-      flow += saleProceeds;
-    }
-    rows.push({y, noi:yNoi, debt:annualDebt, cf:yCf, bal});
-    flows.push(flow);
-  }
-  const totalCf = rows.reduce((a,r)=>a+r.cf,0);
-  const distributions = totalCf + saleProceeds;
-  const em = equityIn>0 ? distributions/equityIn : 0;
-  const irrVal = irr(flows);
+  // Adaptateur résultat → variables locales utilisées par le bloc de rendu ci-dessous
+  const price = input.price, units = input.units, sqft = input.sqft, gross = input.grossRevenue;
+  const egi = r.egi, opex = r.opex, noi = r.noi, expRatio = r.expenseRatio;
+  const capRate = r.capRate, capMkt = r.capMkt, impliedValue = r.impliedValue;
+  const loanLTV = r.loanByLTV, loanDCR = r.loanByDCR, baseLoan = r.loanTaken;
+  const binding = r.bindingConstraint === 'coverage' ? 'couverture' : 'valeur';
+  const premium = r.premium, annualDebt = r.annualDebtService;
+  const equityIn = r.equityInvested, downPctEff = r.downPaymentPct;
+  const dscr = r.dscr, cf1 = r.cashFlowYr1, coc = r.cashOnCash;
+  const hold = r.proforma.length, em = r.equityMultiple, irrVal = r.irr;
+  const saleProceeds = r.netSaleProceeds;
+  const rows = r.proforma.map(p => ({ y: p.year, noi: p.noi, debt: p.debtService, cf: p.cashFlow, bal: p.loanBalance }));
 
   // ================= RENDU =================
   // Headline
