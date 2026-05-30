@@ -46,7 +46,12 @@ export function irr(cashflows: number[]): number | null {
 
   let lo = -0.9999;
   let hi = 10;
-  if (npv(lo) * npv(hi) > 0) return null;
+  if (npv(lo) * npv(hi) > 0) {
+    // Pas de changement de signe dans [−100 %, +1000 %] :
+    //  • NPV encore positive au plafond → rendements trop élevés → TRI > plafond → +∞
+    //  • sinon → le capital n'est jamais récupéré → null
+    return npv(hi) > 0 ? Infinity : null;
+  }
 
   for (let i = 0; i < 200; i++) {
     const mid = (lo + hi) / 2;

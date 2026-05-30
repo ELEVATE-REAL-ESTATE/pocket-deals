@@ -4,10 +4,41 @@
  * verrouillé par les tests « golden » (voir test/underwrite.test.ts).
  */
 import { mortgagePayment, loanFromPayment, remainingBalance, irr } from "./finance.js";
-import type { DealInputs, ProformaRow, UnderwritingResult } from "./types.js";
+import type {
+  DealInputs,
+  FinancingProgram,
+  PremiumSchedule,
+  ProformaRow,
+  UnderwritingResult,
+} from "./types.js";
 
 /** Convertit un pourcentage saisi (5.25) en fraction (0.0525). */
 const pc = (p: number): number => p / 100;
+
+/**
+ * Taux de prime SCHL appliqué (fraction), selon la tarification au risque :
+ *   prime = (base selon le RPV du prêt + surcharge d'amortissement) × (1 − rabais pointage).
+ * Une surcharge manuelle (`overridePct`, en %) le remplace si fournie. 0 si non assuré.
+ */
+export function premiumRate(
+  loanToValue: number,
+  amortYears: number,
+  program: FinancingProgram,
+  schedule: PremiumSchedule,
+  mliPoints: number,
+  overridePct?: number,
+): number {
+  if (overridePct && overridePct > 0) return overridePct / 100;
+  if (!program.insured) return 0;
+  const band =
+    schedule.baseByLTV.find((b) => loanToValue <= b.maxLTV) ??
+    schedule.baseByLTV[schedule.baseByLTV.length - 1];
+  const base = band ? band.premium : 0;
+  const steps = Math.max(0, Math.ceil((amortYears - schedule.surchargeBaseYears) / 5));
+  const surcharge = steps * schedule.amortSurchargePer5yr;
+  const discount = program.pointsEligible ? (schedule.pointsDiscounts[String(mliPoints)] ?? 0) : 0;
+  return (base + surcharge) * (1 - discount);
+}
 
 export function underwrite(input: DealInputs): UnderwritingResult {
   const { price, units: rawUnits, sqft, capex, expenses: x, program } = input;
@@ -16,7 +47,6 @@ export function underwrite(input: DealInputs): UnderwritingResult {
   const closing = pc(input.closingPct);
   const vacancy = pc(input.vacancyPct);
   const rate = pc(input.rate);
-  const premiumPct = pc(input.premiumPct);
   const capMkt = pc(input.capMktPct);
   const rentG = pc(input.rentGrowthPct);
   const expG = pc(input.expenseGrowthPct);
@@ -53,7 +83,17 @@ export function underwrite(input: DealInputs): UnderwritingResult {
   const loanTaken = Math.max(0, Math.min(loanByLTV, loanByDCR));
   const bindingConstraint: "value" | "coverage" = loanByDCR < loanByLTV ? "coverage" : "value";
 
-  const premium = program.premium > 0 ? loanTaken * premiumPct : 0;
+  // Prime SCHL : calculée selon le RPV du prêt, l'amortissement et le pointage MLI Select.
+  const ltvOfLoan = price > 0 ? loanTaken / price : 0;
+  const premRate = premiumRate(
+    ltvOfLoan,
+    amort,
+    program,
+    input.premiumSchedule,
+    input.mliPoints,
+    input.premiumOverridePct,
+  );
+  const premium = loanTaken * premRate;
   const financedLoan = loanTaken + premium; // prime capitalisée
   const annualDebtService = mortgagePayment(financedLoan, rate, amort) * 12;
 
@@ -66,7 +106,11 @@ export function underwrite(input: DealInputs): UnderwritingResult {
   // --- Pro forma sur la période de détention + revente ---
   const proforma: ProformaRow[] = [];
   const flows: number[] = [-equityInvested];
+  const annualCfs: number[] = [];
+  let cumulative = 0;
   let netSaleProceeds = 0;
+  let prevBal = financedLoan; // solde initial (avant tout remboursement)
+  let prevValue = exitCap > 0 ? (egi - opex) / exitCap : 0; // valeur à l'acquisition
 
   for (let y = 1; y <= hold; y++) {
     const rev = egi * Math.pow(1 + rentG, y - 1);
@@ -74,16 +118,42 @@ export function underwrite(input: DealInputs): UnderwritingResult {
     const yNoi = rev - exp;
     const yCf = yNoi - annualDebtService;
     const bal = remainingBalance(financedLoan, rate, amort, y * 12);
+    annualCfs.push(yCf);
+    cumulative += yCf;
+
+    // Valeur fin d'année = NOI prospectif (année y+1) capitalisé au cap de sortie
+    const fwdNoi = egi * Math.pow(1 + rentG, y) - opex * Math.pow(1 + expG, y);
+    const propertyValue = exitCap > 0 ? fwdNoi / exitCap : 0;
+    const equityY = propertyValue - bal;
+    const saleY = propertyValue * (1 - selling) - bal;
+    const principalPaid = prevBal - bal; // capitalisation de l'année
+    const appreciation = propertyValue - prevValue; // prise de valeur de l'année
+
+    // TRI si l'immeuble était revendu à la fin de l'année y
+    const periodIRR = irr([-equityInvested, ...annualCfs.slice(0, y - 1), yCf + saleY]);
+
+    proforma.push({
+      year: y,
+      noi: yNoi,
+      debtService: annualDebtService,
+      cashFlow: yCf,
+      loanBalance: bal,
+      propertyValue,
+      equity: equityY,
+      cumulativeCashFlow: cumulative,
+      principalPaid,
+      appreciation,
+      periodIRR,
+    });
 
     let flow = yCf;
     if (y === hold) {
-      const fwdNoi = egi * Math.pow(1 + rentG, y) - opex * Math.pow(1 + expG, y);
-      const grossSale = exitCap > 0 ? fwdNoi / exitCap : 0;
-      netSaleProceeds = grossSale * (1 - selling) - bal;
+      netSaleProceeds = saleY; // = valeur capitalisée × (1 − frais) − solde
       flow += netSaleProceeds;
     }
-    proforma.push({ year: y, noi: yNoi, debtService: annualDebtService, cashFlow: yCf, loanBalance: bal });
     flows.push(flow);
+    prevBal = bal;
+    prevValue = propertyValue;
   }
 
   const totalCf = proforma.reduce((acc, r) => acc + r.cashFlow, 0);
@@ -104,6 +174,7 @@ export function underwrite(input: DealInputs): UnderwritingResult {
     loanByDCR,
     loanTaken,
     bindingConstraint,
+    premiumRate: premRate,
     premium,
     financedLoan,
     annualDebtService,

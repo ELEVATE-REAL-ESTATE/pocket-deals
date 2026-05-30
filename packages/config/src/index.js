@@ -1,84 +1,89 @@
-/* ============================================================================
-   ELEVATE — DONNÉES DE MARCHÉ (source unique de vérité)
-   ----------------------------------------------------------------------------
-   Ce fichier centralise TOUTES les données sensibles au marché utilisées par
-   l'analyseur. Chaque bloc porte sa date (`asOf`) et sa source. Pour mettre à
-   jour : modifier les valeurs ici — l'analyseur les lit au chargement.
+import { MARKET_RENTS } from "./market-rents.js";
 
-   Rafraîchissement :
-     • Taux d'intérêt → tiré EN DIRECT de la Banque du Canada (oblig. 5 ans).
-     • Cap rates / SCHL / barèmes → mis à jour périodiquement à partir des
-       sources créditées ci-dessous (voir routine planifiée / refresh-market).
+/* ============================================================================
+   @elevate/config — DONNÉES DE MARCHÉ (source unique pour les apps bundlées)
+   ----------------------------------------------------------------------------
+   Identique au contenu de `market-data.js` (racine), mais exporté en module ESM
+   (`MARKET_DATA`) au lieu d'un global `window.MARKET_DATA`.
+
+   ⚠️ Pendant la transition (Phase 1), DEUX copies coexistent :
+     • racine `market-data.js`  → page statique `analyzer.html` (script classique)
+     • ce fichier               → apps bundlées (import ESM)
+   À la bascule (fin Tranche 2), supprimer la version racine et repointer la
+   routine `refresh-market-data` vers CE fichier (voir REFRESH-MARKET.md).
    ============================================================================ */
-window.MARKET_DATA = {
+export const MARKET_DATA = {
 
   meta: {
     lastUpdated: "2026-05-29",
     note: "Repères de marché — à valider avec un courtier hypothécaire / prêteur avant toute offre."
   },
 
-  /* -- Taux d'intérêt : ancrés sur l'obligation 5 ans du gouvernement du Canada,
-        tirée en direct via l'API Valet de la Banque du Canada. Le taux suggéré =
-        rendement 5 ans + écart selon le programme. ------------------------------ */
   rates: {
-    // Séries tirées en direct via l'API Valet (un seul appel, séparées par virgules)
     valetSeries: { policy: "V39079", prime: "V80691311", goc5yr: "BD.CDN.5YR.DQ.YLD" },
     valetUrl: "https://www.bankofcanada.ca/valet/observations/V39079,V80691311,BD.CDN.5YR.DQ.YLD/json?recent=30",
-    // CMB 5 ans EXACT : feed temps réel GreenBirch Capital / theFinancials (CORS ouvert).
-    // On lit la ligne « CMB 5-Year » (valeur + horodatage). Repli : oblig. 5 ans + cmbSpread.
     cmbWidgetUrl: "https://www.thefinancials.com/Widget.aspx?pid=GREENBIR&wid=0375108050&mode=js&width=0",
     cmbLabel: "CMB 5-Year",
     cmbSource: "GreenBirch Capital / theFinancials",
-    cmbSpread: 0.0035,            // utilisé seulement si le feed CMB est inaccessible
-    fallback: { policy: 0.0225, prime: 0.0445, goc5yr: 0.0310 }, // repli si API inaccessible
+    cmbSpread: 0.0035,
+    fallback: { policy: 0.0225, prime: 0.0445, goc5yr: 0.0310 },
     fallbackAsOf: "2026-05-28",
-    // Écart hypothécaire par programme, ajouté à la base indiquée (oblig. 5 ans ou CMB 5 ans)
     spreads: {
-      "conv":    { base: "goc5yr", spread: 0.0215 }, // conventionnel — sur oblig. 5 ans
-      "mli-std": { base: "cmb5yr", spread: 0.0140 }, // SCHL MLI Standard — sur CMB 5 ans
-      "mli-sel": { base: "cmb5yr", spread: 0.0125 }  // SCHL MLI Select — sur CMB 5 ans
+      "conv":    { base: "goc5yr", spread: 0.0215 },
+      "mli-std": { base: "cmb5yr", spread: 0.0140 },
+      "mli-sel": { base: "cmb5yr", spread: 0.0125 }
     },
     source: "Banque du Canada — API Valet (taux directeur V39079, préférentiel V80691311, oblig. 5 ans)"
   },
 
-  /* -- Programmes de financement (paramètres SCHL / conventionnel) ------------- */
   programs: {
     asOf: "2025-Q4",
     source: "SCHL — MLI Standard & MLI Select 2025-2026 ; normes bancaires conventionnelles",
     items: {
-      "conv":    { label:"Conventionnel (non assuré)",  maxLTV:0.75, minDCR:1.25, maxAmort:30, premium:0,
+      "conv":    { label:"Conventionnel (non assuré)",  maxLTV:0.75, minDCR:1.25, maxAmort:30, insured:false, pointsEligible:false,
                    hint:"Prêteur bancaire — jusqu’à 75 % RPV, RCD min 1,25, amort. 25–30 ans." },
-      "mli-std": { label:"SCHL — MLI Standard (assuré)", maxLTV:0.85, minDCR:1.20, maxAmort:40, premium:0.040,
+      "mli-std": { label:"SCHL — MLI Standard (assuré)", maxLTV:0.85, minDCR:1.20, maxAmort:40, insured:true,  pointsEligible:false,
                    hint:"Assuré SCHL — jusqu’à 85 % RPV, RCD min 1,20, amort. jusqu’à 40 ans." },
-      "mli-sel": { label:"SCHL — MLI Select (assuré)",   maxLTV:0.95, minDCR:1.10, maxAmort:50, premium:0.045,
+      "mli-sel": { label:"SCHL — MLI Select (assuré)",   maxLTV:0.95, minDCR:1.10, maxAmort:50, insured:true,  pointsEligible:true,
                    hint:"Pointage (abordabilité, efficacité, accessibilité) — jusqu’à 95 % RPV, RCD min 1,10, amort. jusqu’à 50 ans." }
+    },
+    // Barème de prime SCHL — tarification AU RISQUE (en vigueur 14 juillet 2025).
+    // prime = (base selon RPV + surcharge d'amortissement) × (1 − rabais pointage).
+    // Valeurs approximatives (sources secondaires) — à affiner avec le tableau officiel SCHL / un prêteur.
+    premiumSchedule: {
+      asOf: "2025-07-14",
+      source: "SCHL — tarification au risque (14 juillet 2025) ; LendCity, buildingsforsaletoronto — valeurs approximatives",
+      // Prime de base : première bande dont le RPV du prêt est ≤ maxLTV
+      baseByLTV: [
+        { maxLTV: 0.65, premium: 0.0245 },
+        { maxLTV: 0.75, premium: 0.0250 },
+        { maxLTV: 0.80, premium: 0.0475 },
+        { maxLTV: 0.85, premium: 0.0550 },
+        { maxLTV: 0.90, premium: 0.0585 },
+        { maxLTV: 0.95, premium: 0.0615 }
+      ],
+      amortSurchargePer5yr: 0.0025, // +0,25 % par tranche de 5 ans
+      surchargeBaseYears: 25,       // au-delà de 25 ans
+      pointsDiscounts: { "0": 0, "50": 0.10, "70": 0.20, "100": 0.30 } // MLI Select seulement
     }
   },
 
-  /* -- Barèmes de dépenses normalisées SCHL (Québec) -------------------------- */
   schlExpenses: {
     asOf: "2023-06",
     source: "SCHL / CORPIQ — barèmes de dépenses normalisées (mise à jour juin 2023)",
-    repairsPerDoor: 610,                       // entretien & réparations $/porte/an
-    conciergePerDoor: { ge12: 365, lt12: 330 },// 12+ unités : 365 $ ; sinon 330 $
-    mgmtPct: 5,                                // gestion (fourchette SCHL 4–5 %)
-    vacancyFloor: 0.03,                        // plancher d'inoccupation
-    // Réserve de remplacement : structure (selon construction) + composantes présentes
+    repairsPerDoor: 610,
+    conciergePerDoor: { ge12: 365, lt12: 330 },
+    mgmtPct: 5,
+    vacancyFloor: 0.03,
     reserveStructPerDoor: { bois: 450, beton: 300 },
-    reserveComponents: {
-      appliances: 110,        // cuisinière + réfrigérateur ($/porte/an, ~15 ans)
-      heatpump: 250,          // thermopompe / climatisation ($/porte/an)
-      elevatorBuilding: 2500  // ascenseur (charge annuelle au bâtiment, répartie sur les portes)
-    }
+    reserveComponents: { appliances: 110, heatpump: 250, elevatorBuilding: 2500 }
   },
 
-  /* -- Construction (étiquettes) ---------------------------------------------- */
   construction: {
     "bois":  { label:"Brique et bois (ossature légère)" },
     "beton": { label:"Béton (structure de béton)" }
   },
 
-  /* -- Taux de capitalisation : cap de base par région + écart par type d'actif */
   capRates: {
     asOf: "2025-Q4",
     source: "Colliers (Canada Cap Rate Report Q4 2025), CBRE, Cushman & Wakefield",
@@ -101,5 +106,9 @@ window.MARKET_DATA = {
       "office": { label:"Bureau",                           spread:0.0200 },
       "senior": { label:"Résidence (RPA / étudiant)",       spread:0.0075 }
     }
-  }
+  },
+
+  /* -- Loyers de marché SCHL par région détaillée (135 zones) + bucket de cap.
+        Généré dans market-rents.js depuis l'Enquête sur les logements locatifs. */
+  marketRents: MARKET_RENTS
 };

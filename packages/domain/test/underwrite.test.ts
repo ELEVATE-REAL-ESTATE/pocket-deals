@@ -3,15 +3,38 @@ import {
   underwrite,
   mortgagePayment,
   loanFromPayment,
+  irr,
+  premiumRate,
   schlReservePerDoor,
   schlConciergePerDoor,
   type DealInputs,
+  type PremiumSchedule,
 } from "../src/index.js";
 
 /** Tolérance relative — les valeurs « golden » ont été calculées indépendamment
  *  (hors moteur) et arrondies ; on compare en relatif avec un plancher absolu. */
 const approx = (actual: number, expected: number, rel = 1e-5): void =>
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(Math.abs(expected) * rel + 0.01);
+
+// Barème de prime SCHL (miroir de @elevate/config — tarification au risque 2025-07-14)
+const SCHEDULE: PremiumSchedule = {
+  baseByLTV: [
+    { maxLTV: 0.65, premium: 0.0245 },
+    { maxLTV: 0.75, premium: 0.025 },
+    { maxLTV: 0.8, premium: 0.0475 },
+    { maxLTV: 0.85, premium: 0.055 },
+    { maxLTV: 0.9, premium: 0.0585 },
+    { maxLTV: 0.95, premium: 0.0615 },
+  ],
+  amortSurchargePer5yr: 0.0025,
+  surchargeBaseYears: 25,
+  pointsDiscounts: { "0": 0, "50": 0.1, "70": 0.2, "100": 0.3 },
+};
+
+// Programmes (nouvelle forme : insured / pointsEligible ; la prime est calculée)
+const CONV = { maxLTV: 0.75, minDCR: 1.25, maxAmort: 30, insured: false, pointsEligible: false };
+const MLI_STD = { maxLTV: 0.85, minDCR: 1.2, maxAmort: 40, insured: true, pointsEligible: false };
+const MLI_SEL = { maxLTV: 0.95, minDCR: 1.1, maxAmort: 50, insured: true, pointsEligible: true };
 
 /** Deal de référence = valeurs par défaut de l'analyseur (immeuble 12 portes, 2,4 M$). */
 function defaultDeal(overrides: Partial<DealInputs> = {}): DealInputs {
@@ -34,10 +57,11 @@ function defaultDeal(overrides: Partial<DealInputs> = {}): DealInputs {
       reservePerDoor: 300,
       misc: 6_000,
     },
-    program: { maxLTV: 0.85, minDCR: 1.2, maxAmort: 40, premium: 0.04 }, // SCHL MLI Standard
+    program: { ...MLI_STD }, // SCHL MLI Standard
     rate: 5.25,
     amort: 40,
-    premiumPct: 4.0,
+    premiumSchedule: SCHEDULE,
+    mliPoints: 100,
     capMktPct: 5.0,
     hold: 5,
     rentGrowthPct: 3,
@@ -96,26 +120,28 @@ describe("underwrite — golden (deal de référence)", () => {
     approx(r.loanByDCR, 2_393_518.85);
     approx(r.loanTaken, 2_040_000);
     expect(r.bindingConstraint).toBe("value");
-    approx(r.premium, 81_600);
-    approx(r.financedLoan, 2_121_600);
-    approx(r.annualDebtService, 127_008.4);
+    // Prime SCHL au risque : 85 % RPV (5,50 %) + surcharge 40 ans (3 × 0,25 %) = 6,25 %
+    expect(r.premiumRate).toBeCloseTo(0.0625, 4);
+    approx(r.premium, 127_500);
+    approx(r.financedLoan, 2_167_500);
+    approx(r.annualDebtService, 129_756.17);
   });
 
   it("rendement", () => {
     approx(r.equityInvested, 420_000);
     approx(r.downPaymentPct, 0.15);
-    approx(r.dscr, 1.3538);
-    approx(r.cashFlowYr1, 44_935.6);
-    approx(r.cashOnCash, 0.10699);
+    approx(r.dscr, 1.325132);
+    approx(r.cashFlowYr1, 42_187.83);
+    approx(r.cashOnCash, 0.100447);
   });
 
   it("détention & sortie", () => {
     expect(r.proforma).toHaveLength(5);
-    approx(r.netSaleProceeds, 1_862_909.54);
-    approx(r.totalDistributions, 2_147_478.55);
-    approx(r.equityMultiple, 5.113044);
+    approx(r.netSaleProceeds, 1_818_937.54);
+    approx(r.totalDistributions, 2_089_767.66);
+    approx(r.equityMultiple, 4.975637);
     expect(r.irr).not.toBeNull();
-    approx(r.irr as number, 0.425159);
+    approx(r.irr as number, 0.415165);
   });
 });
 
@@ -129,8 +155,245 @@ describe("underwrite — variantes", () => {
 
   it("un cap de sortie réaliste (6,5 %) réduit le multiple d'équité", () => {
     const r = underwrite(defaultDeal({ exitCapPct: 6.5 }));
-    approx(r.netSaleProceeds, 963_971.88);
-    approx(r.equityMultiple, 2.972716);
-    expect(r.equityMultiple).toBeLessThan(5.113044);
+    approx(r.netSaleProceeds, 919_999.88);
+    approx(r.equityMultiple, 2.83531);
+    expect(r.equityMultiple).toBeLessThan(4.975637);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 1. Dimensionnement du prêt — le prêt retenu = min(prêt-valeur, prêt-couverture)
+// ---------------------------------------------------------------------------
+describe("dimensionnement du prêt — valeur vs couverture", () => {
+  it("plafonné par la VALEUR quand la couverture est abondante (RPV mord en premier)", () => {
+    const r = underwrite(defaultDeal({ program: MLI_STD, rate: 5.25 }));
+    expect(r.bindingConstraint).toBe("value");
+    expect(r.loanByLTV).toBeLessThan(r.loanByDCR);
+    approx(r.loanTaken, r.loanByLTV);
+    approx(r.loanTaken, 2_400_000 * 0.85); // = prix × RPV max
+  });
+
+  it("plafonné par la COUVERTURE quand le RCD mord en premier (taux élevé)", () => {
+    const rate = 9;
+    const r = underwrite(defaultDeal({ program: MLI_STD, rate }));
+    expect(r.bindingConstraint).toBe("coverage");
+    expect(r.loanByDCR).toBeLessThan(r.loanByLTV);
+    approx(r.loanTaken, r.loanByDCR);
+    // Invariant : le prêt-couverture est dimensionné pour RCD = minDCR sur le prêt de base
+    const baseDebtService = mortgagePayment(r.loanByDCR, rate / 100, MLI_STD.maxAmort) * 12;
+    approx(r.noi / baseDebtService, MLI_STD.minDCR);
+  });
+
+  it("la prime SCHL est capitalisée par-dessus le prêt de base", () => {
+    const r = underwrite(defaultDeal({ program: MLI_STD }));
+    approx(r.premium, r.loanTaken * r.premiumRate); // prime = prêt × taux calculé
+    approx(r.financedLoan, r.loanTaken + r.premium);
+    // équité = prix − prêt de base (+ frais + capex) : la prime est financée, pas payée comptant
+    approx(r.equityInvested, 2_400_000 - r.loanTaken + 2_400_000 * 0.025 + 0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 2. Programmes — Conventionnel vs MLI Standard vs MLI Select
+// ---------------------------------------------------------------------------
+describe("programmes — Conventionnel vs MLI Standard vs MLI Select", () => {
+  // Sur ce deal à fort NOI, les trois sont plafonnés par la valeur → prêt = prix × RPV
+  const conv = underwrite(defaultDeal({ program: CONV }));
+  const std = underwrite(defaultDeal({ program: MLI_STD }));
+  const sel = underwrite(defaultDeal({ program: MLI_SEL }));
+
+  it("RPV croissant → prêt croissant (Conv 75 % < Standard 85 % < Select 95 %)", () => {
+    expect(conv.bindingConstraint).toBe("value");
+    expect(std.bindingConstraint).toBe("value");
+    expect(sel.bindingConstraint).toBe("value");
+    approx(conv.loanTaken, 2_400_000 * 0.75);
+    approx(std.loanTaken, 2_400_000 * 0.85);
+    approx(sel.loanTaken, 2_400_000 * 0.95);
+    expect(conv.loanTaken).toBeLessThan(std.loanTaken);
+    expect(std.loanTaken).toBeLessThan(sel.loanTaken);
+  });
+
+  it("prêt plus gros → équité requise plus faible", () => {
+    expect(sel.equityInvested).toBeLessThan(std.equityInvested);
+    expect(std.equityInvested).toBeLessThan(conv.equityInvested);
+  });
+
+  it("le conventionnel n'a pas de prime (financé = prêt de base)", () => {
+    expect(conv.premium).toBe(0);
+    approx(conv.financedLoan, conv.loanTaken);
+  });
+
+  it("MLI Select : prime calculée reproduit l'exemple SCHL (95 % / 50 ans / 100 pts = 5,18 %)", () => {
+    // 6,15 % (95 % RPV) + 1,25 % (50 ans) = 7,40 % × (1 − 30 %) = 5,18 %
+    const r = underwrite(defaultDeal({ program: MLI_SEL, amort: 50, mliPoints: 100 }));
+    expect(r.premiumRate).toBeCloseTo(0.0518, 4);
+  });
+
+  it("une surcharge manuelle (premiumOverridePct) remplace la prime calculée", () => {
+    const r = underwrite(defaultDeal({ program: MLI_SEL, premiumOverridePct: 7 }));
+    expect(r.premiumRate).toBeCloseTo(0.07, 4);
+  });
+
+  it("l'amortissement est plafonné par program.maxAmort", () => {
+    // Demander 60 ans sur MLI Select (max 50) = identique à 50 ans
+    const at60 = underwrite(defaultDeal({ program: MLI_SEL, amort: 60 }));
+    const at50 = underwrite(defaultDeal({ program: MLI_SEL, amort: 50 }));
+    approx(at60.annualDebtService, at50.annualDebtService, 1e-9);
+    approx(at60.loanByDCR, at50.loanByDCR, 1e-9);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 3. NOI — invariants : le financement n'affecte JAMAIS le NOI (non-levier)
+// ---------------------------------------------------------------------------
+describe("NOI — invariants (non-levier)", () => {
+  it("NOI et cap rate indépendants du taux et du programme", () => {
+    const a = underwrite(defaultDeal({ rate: 5.25, program: MLI_STD }));
+    const b = underwrite(defaultDeal({ rate: 12, program: MLI_SEL }));
+    approx(a.noi, b.noi, 1e-9);
+    approx(a.egi, b.egi, 1e-9);
+    approx(a.opex, b.opex, 1e-9);
+    approx(a.capRate, b.capRate, 1e-9);
+    approx(a.impliedValue, b.impliedValue, 1e-9);
+  });
+
+  it("le capex initial n'affecte pas le NOI (mais augmente l'équité)", () => {
+    const base = underwrite(defaultDeal({ capex: 0 }));
+    const withCapex = underwrite(defaultDeal({ capex: 500_000 }));
+    approx(withCapex.noi, base.noi, 1e-9);
+    approx(withCapex.equityInvested, base.equityInvested + 500_000, 1e-9);
+  });
+
+  it("vacance = 0 → RBE effectif = revenus bruts", () => {
+    const r = underwrite(defaultDeal({ vacancyPct: 0 }));
+    approx(r.egi, 312_000);
+  });
+
+  it("la gestion est un % du RBE effectif (pas un montant fixe)", () => {
+    const m0 = underwrite(defaultDeal({ expenses: { ...defaultDeal().expenses, mgmtPct: 0 } }));
+    const m10 = underwrite(defaultDeal({ expenses: { ...defaultDeal().expenses, mgmtPct: 10 } }));
+    approx(m10.opex - m0.opex, m0.egi * 0.1); // écart d'opex = egi × 10 %
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4. DSCR — cas limites
+// ---------------------------------------------------------------------------
+describe("DSCR — cas limites", () => {
+  it("service de dette nul (achat comptant) → DSCR = ∞", () => {
+    const allCash = { maxLTV: 0, minDCR: 1.2, maxAmort: 40, insured: false, pointsEligible: false };
+    const r = underwrite(defaultDeal({ program: allCash }));
+    expect(r.loanTaken).toBe(0);
+    expect(r.annualDebtService).toBe(0);
+    expect(r.dscr).toBe(Infinity);
+    approx(r.cashFlowYr1, r.noi); // flux = NOI (aucune dette)
+    approx(r.equityInvested, 2_400_000 + 2_400_000 * 0.025); // tout comptant : prix + frais
+  });
+
+  it("taux d'intérêt plus élevé → DSCR plus faible", () => {
+    const lo = underwrite(defaultDeal({ rate: 5.25 }));
+    const hi = underwrite(defaultDeal({ rate: 9 }));
+    expect(hi.dscr).toBeLessThan(lo.dscr);
+  });
+
+  it("financement agressif + taux élevé → flux négatif et DSCR < 1", () => {
+    const aggressive = { maxLTV: 0.95, minDCR: 0.5, maxAmort: 25, insured: false, pointsEligible: false };
+    const r = underwrite(defaultDeal({ program: aggressive, rate: 12 }));
+    expect(r.bindingConstraint).toBe("value");
+    expect(r.cashFlowYr1).toBeLessThan(0);
+    expect(r.cashOnCash).toBeLessThan(0);
+    expect(r.dscr).toBeLessThan(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 5. IRR — cas limites
+// ---------------------------------------------------------------------------
+describe("IRR — cas limites", () => {
+  it("pas de changement de signe : +∞ si trop rentable, null si jamais récupéré", () => {
+    expect(irr([-100, -50, -50])).toBeNull(); // que des sorties → jamais récupéré
+    expect(irr([100, 50, 50])).toBe(Infinity); // que des entrées → rendement infini
+  });
+
+  it("propriété définitoire : NPV au taux IRR ≈ 0", () => {
+    const cf = [-1000, 300, 400, 500];
+    const rate = irr(cf);
+    expect(rate).not.toBeNull();
+    const npv = cf.reduce((acc, c, t) => acc + c / Math.pow(1 + (rate as number), t), 0);
+    expect(Math.abs(npv)).toBeLessThan(1e-3);
+  });
+
+  it("monotonie : cap de sortie plus bas (revente plus chère) → IRR plus élevé", () => {
+    const low = underwrite(defaultDeal({ exitCapPct: 5.0 }));
+    const high = underwrite(defaultDeal({ exitCapPct: 6.5 }));
+    expect(low.irr as number).toBeGreaterThan(high.irr as number);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 6. Gardes — division par zéro / valeurs dégénérées
+// ---------------------------------------------------------------------------
+describe("gardes (price=0, NOI≤0, équité=0)", () => {
+  it("price = 0 ne lève pas et neutralise les ratios au prix", () => {
+    const r = underwrite(defaultDeal({ price: 0, capex: 0 }));
+    expect(r.capRate).toBe(0);
+    expect(r.loanByLTV).toBe(0);
+    expect(r.downPaymentPct).toBe(0);
+    expect(r.pricePerDoor).toBe(0);
+    expect(Number.isFinite(r.cashOnCash)).toBe(true); // équité 0 → garde, pas NaN/∞
+  });
+
+  it("NOI ≤ 0 → aucun prêt-couverture, prêt retenu = 0 (plafonné par couverture)", () => {
+    const r = underwrite(defaultDeal({ expenses: { ...defaultDeal().expenses, misc: 400_000 } }));
+    expect(r.noi).toBeLessThan(0);
+    expect(r.capRate).toBeLessThan(0);
+    expect(r.loanByDCR).toBe(0);
+    expect(r.loanTaken).toBe(0);
+    expect(r.bindingConstraint).toBe("coverage");
+  });
+
+  it("équité = 0 (financement 100 %) → cash-on-cash neutralisé à 0", () => {
+    const fullLeverage = { maxLTV: 1.0, minDCR: 0.5, maxAmort: 40, insured: false, pointsEligible: false };
+    const r = underwrite(defaultDeal({ program: fullLeverage, closingPct: 0, capex: 0 }));
+    approx(r.loanTaken, 2_400_000);
+    expect(r.equityInvested).toBe(0);
+    expect(r.cashOnCash).toBe(0); // garde equityInvested > 0
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. Prime SCHL — barème au risque (14 juillet 2025)
+//    prime = (base selon RPV + surcharge amortissement) × (1 − rabais pointage)
+// ---------------------------------------------------------------------------
+describe("prime SCHL — barème au risque", () => {
+  it("base selon la bande de RPV", () => {
+    expect(premiumRate(0.75, 25, MLI_STD, SCHEDULE, 0)).toBeCloseTo(0.025, 4);
+    expect(premiumRate(0.85, 25, MLI_STD, SCHEDULE, 0)).toBeCloseTo(0.055, 4);
+    expect(premiumRate(0.95, 25, MLI_SEL, SCHEDULE, 0)).toBeCloseTo(0.0615, 4);
+  });
+
+  it("surcharge d'amortissement : +0,25 % par 5 ans au-delà de 25", () => {
+    expect(premiumRate(0.85, 25, MLI_STD, SCHEDULE, 0)).toBeCloseTo(0.055, 4);
+    expect(premiumRate(0.85, 40, MLI_STD, SCHEDULE, 0)).toBeCloseTo(0.0625, 4); // +0,75 %
+    expect(premiumRate(0.85, 50, MLI_STD, SCHEDULE, 0)).toBeCloseTo(0.0675, 4); // +1,25 %
+  });
+
+  it("rabais de pointage MLI Select (appliqué sur base + surcharge)", () => {
+    expect(premiumRate(0.95, 50, MLI_SEL, SCHEDULE, 0)).toBeCloseTo(0.074, 4); // sans rabais
+    expect(premiumRate(0.95, 50, MLI_SEL, SCHEDULE, 50)).toBeCloseTo(0.0666, 4); // −10 %
+    expect(premiumRate(0.95, 50, MLI_SEL, SCHEDULE, 70)).toBeCloseTo(0.0592, 4); // −20 %
+    expect(premiumRate(0.95, 50, MLI_SEL, SCHEDULE, 100)).toBeCloseTo(0.0518, 4); // −30 %
+  });
+
+  it("le rabais de pointage ne s'applique PAS à MLI Standard", () => {
+    expect(premiumRate(0.85, 40, MLI_STD, SCHEDULE, 100)).toBeCloseTo(0.0625, 4);
+  });
+
+  it("programme non assuré (conventionnel) → prime 0", () => {
+    expect(premiumRate(0.75, 30, CONV, SCHEDULE, 0)).toBe(0);
+  });
+
+  it("surcharge manuelle (override) remplace la prime calculée", () => {
+    expect(premiumRate(0.85, 40, MLI_STD, SCHEDULE, 100, 7)).toBeCloseTo(0.07, 4);
   });
 });

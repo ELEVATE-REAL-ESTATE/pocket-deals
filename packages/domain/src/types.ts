@@ -16,8 +16,27 @@ export interface FinancingProgram {
   minDCR: number;
   /** Amortissement maximal autorisé (années). */
   maxAmort: number;
-  /** Taux de prime SCHL appliqué au prêt de base (fraction, 0 si conventionnel). */
+  /** Programme assuré SCHL (prime applicable) ? false = conventionnel. */
+  insured: boolean;
+  /** Admissible au rabais de pointage MLI Select ? */
+  pointsEligible: boolean;
+}
+
+/** Une bande du barème de prime : prime de base si le RPV du prêt est ≤ maxLTV. */
+export interface PremiumScheduleBand {
+  maxLTV: number;
   premium: number;
+}
+
+/** Barème de prime SCHL (tarification au risque, 14 juillet 2025). */
+export interface PremiumSchedule {
+  /** Prime de base par bande de RPV (croissante). */
+  baseByLTV: PremiumScheduleBand[];
+  /** Surcharge par tranche de 5 ans d'amortissement au-delà de `surchargeBaseYears`. */
+  amortSurchargePer5yr: number;
+  surchargeBaseYears: number;
+  /** Rabais MLI Select selon le pointage (clé = points : "0" | "50" | "70" | "100"). */
+  pointsDiscounts: Record<string, number>;
 }
 
 /** Dépenses d'exploitation, ventilées par catégorie. */
@@ -35,6 +54,26 @@ export interface ExpenseInputs {
   misc: number;
 }
 
+/** Un type d'unité dans le mix locatif (nombre + loyer mensuel moyen actuel). */
+export interface UnitTypeMix {
+  count: number;
+  rent: number;
+}
+/** Mix locatif par type (studio / 3½=1 ch. / 4½=2 ch. / 5½+=3 ch.+). */
+export interface UnitMix {
+  studio?: UnitTypeMix;
+  br1?: UnitTypeMix;
+  br2?: UnitTypeMix;
+  br3?: UnitTypeMix;
+}
+/** Loyers de marché mensuels par type (depuis @elevate/config, par région). */
+export interface MarketRentSet {
+  studio: number | null;
+  br1: number | null;
+  br2: number | null;
+  br3: number | null;
+}
+
 /** Toutes les entrées nécessaires pour underwriter un deal. */
 export interface DealInputs {
   price: number;
@@ -49,14 +88,20 @@ export interface DealInputs {
   /** Inoccupation & mauvaises créances, en %. */
   vacancyPct: number;
   expenses: ExpenseInputs;
+  /** Mix locatif optionnel — active la comparaison aux loyers de marché (valorisation). */
+  unitMix?: UnitMix;
 
   program: FinancingProgram;
   /** Taux d'intérêt annuel, en % (ex. 5.25). */
   rate: number;
   /** Amortissement demandé (années) — plafonné par program.maxAmort. */
   amort: number;
-  /** Prime SCHL appliquée, en % (ex. 4.0). */
-  premiumPct: number;
+  /** Barème de prime SCHL (depuis @elevate/config). */
+  premiumSchedule: PremiumSchedule;
+  /** Pointage MLI Select : 0 | 50 | 70 | 100 (ignoré si programme non admissible). */
+  mliPoints: number;
+  /** Surcharge de prime manuelle, en % — si > 0, remplace la prime calculée. */
+  premiumOverridePct?: number;
 
   /** Cap de marché suggéré, en % (ex. 5.0) — sert à la valeur implicite et à la sortie. */
   capMktPct: number;
@@ -80,6 +125,18 @@ export interface ProformaRow {
   debtService: number;
   cashFlow: number;
   loanBalance: number;
+  /** Valeur de l'immeuble en fin d'année = NOI prospectif (année +1) ÷ cap de sortie. */
+  propertyValue: number;
+  /** Équité = valeur − solde du prêt. */
+  equity: number;
+  /** Flux d'exploitation cumulés (hors revente). */
+  cumulativeCashFlow: number;
+  /** Capital remboursé cette année (capitalisation = réduction du solde). */
+  principalPaid: number;
+  /** Prise de valeur cette année (hausse de la valeur de l'immeuble). */
+  appreciation: number;
+  /** TRI si l'immeuble était revendu à la fin de cette année (null si non calculable). */
+  periodIRR: number | null;
 }
 
 /** Résultat complet de l'underwriting. */
@@ -102,6 +159,8 @@ export interface UnderwritingResult {
   loanByDCR: number;
   loanTaken: number;
   bindingConstraint: "value" | "coverage";
+  /** Taux de prime SCHL appliqué (fraction) — calculé ou surchargé. */
+  premiumRate: number;
   premium: number;
   financedLoan: number;
   annualDebtService: number;
