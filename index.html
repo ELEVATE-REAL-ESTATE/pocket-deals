@@ -629,8 +629,8 @@ function fmtMoney(n) {
 function fmtMoneyShort(n) {
   if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
   const num = Number(n);
-  if (num >= 1e6) return (num / 1e6).toFixed(num >= 10e6 ? 1 : 2) + ' M$';
-  if (num >= 1e3) return (num / 1e3).toFixed(0) + ' k$';
+  if (num >= 1e6) return (num / 1e6).toFixed(num >= 10e6 ? 1 : 2) + 'M $';
+  if (num >= 1e3) return (num / 1e3).toFixed(0) + 'k $';
   return num + ' $';
 }
 
