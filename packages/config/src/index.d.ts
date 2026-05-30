@@ -9,8 +9,22 @@ export interface ProgramItem {
   maxLTV: number;
   minDCR: number;
   maxAmort: number;
-  premium: number;
+  insured: boolean;
+  pointsEligible: boolean;
   hint: string;
+}
+
+export interface PremiumScheduleBand {
+  maxLTV: number;
+  premium: number;
+}
+export interface PremiumSchedule {
+  asOf: string;
+  source: string;
+  baseByLTV: PremiumScheduleBand[];
+  amortSurchargePer5yr: number;
+  surchargeBaseYears: number;
+  pointsDiscounts: Record<string, number>;
 }
 export interface LabeledCap {
   label: string;
@@ -35,7 +49,12 @@ export interface MarketData {
     spreads: Record<string, RateSpread>;
     source: string;
   };
-  programs: { asOf: string; source: string; items: Record<string, ProgramItem> };
+  programs: {
+    asOf: string;
+    source: string;
+    items: Record<string, ProgramItem>;
+    premiumSchedule: PremiumSchedule;
+  };
   schlExpenses: {
     asOf: string;
     source: string;

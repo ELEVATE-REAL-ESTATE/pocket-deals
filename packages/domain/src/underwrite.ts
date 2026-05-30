@@ -4,10 +4,41 @@
  * verrouillé par les tests « golden » (voir test/underwrite.test.ts).
  */
 import { mortgagePayment, loanFromPayment, remainingBalance, irr } from "./finance.js";
-import type { DealInputs, ProformaRow, UnderwritingResult } from "./types.js";
+import type {
+  DealInputs,
+  FinancingProgram,
+  PremiumSchedule,
+  ProformaRow,
+  UnderwritingResult,
+} from "./types.js";
 
 /** Convertit un pourcentage saisi (5.25) en fraction (0.0525). */
 const pc = (p: number): number => p / 100;
+
+/**
+ * Taux de prime SCHL appliqué (fraction), selon la tarification au risque :
+ *   prime = (base selon le RPV du prêt + surcharge d'amortissement) × (1 − rabais pointage).
+ * Une surcharge manuelle (`overridePct`, en %) le remplace si fournie. 0 si non assuré.
+ */
+export function premiumRate(
+  loanToValue: number,
+  amortYears: number,
+  program: FinancingProgram,
+  schedule: PremiumSchedule,
+  mliPoints: number,
+  overridePct?: number,
+): number {
+  if (overridePct && overridePct > 0) return overridePct / 100;
+  if (!program.insured) return 0;
+  const band =
+    schedule.baseByLTV.find((b) => loanToValue <= b.maxLTV) ??
+    schedule.baseByLTV[schedule.baseByLTV.length - 1];
+  const base = band ? band.premium : 0;
+  const steps = Math.max(0, Math.ceil((amortYears - schedule.surchargeBaseYears) / 5));
+  const surcharge = steps * schedule.amortSurchargePer5yr;
+  const discount = program.pointsEligible ? (schedule.pointsDiscounts[String(mliPoints)] ?? 0) : 0;
+  return (base + surcharge) * (1 - discount);
+}
 
 export function underwrite(input: DealInputs): UnderwritingResult {
   const { price, units: rawUnits, sqft, capex, expenses: x, program } = input;
@@ -16,7 +47,6 @@ export function underwrite(input: DealInputs): UnderwritingResult {
   const closing = pc(input.closingPct);
   const vacancy = pc(input.vacancyPct);
   const rate = pc(input.rate);
-  const premiumPct = pc(input.premiumPct);
   const capMkt = pc(input.capMktPct);
   const rentG = pc(input.rentGrowthPct);
   const expG = pc(input.expenseGrowthPct);
@@ -53,7 +83,17 @@ export function underwrite(input: DealInputs): UnderwritingResult {
   const loanTaken = Math.max(0, Math.min(loanByLTV, loanByDCR));
   const bindingConstraint: "value" | "coverage" = loanByDCR < loanByLTV ? "coverage" : "value";
 
-  const premium = program.premium > 0 ? loanTaken * premiumPct : 0;
+  // Prime SCHL : calculée selon le RPV du prêt, l'amortissement et le pointage MLI Select.
+  const ltvOfLoan = price > 0 ? loanTaken / price : 0;
+  const premRate = premiumRate(
+    ltvOfLoan,
+    amort,
+    program,
+    input.premiumSchedule,
+    input.mliPoints,
+    input.premiumOverridePct,
+  );
+  const premium = loanTaken * premRate;
   const financedLoan = loanTaken + premium; // prime capitalisée
   const annualDebtService = mortgagePayment(financedLoan, rate, amort) * 12;
 
@@ -104,6 +144,7 @@ export function underwrite(input: DealInputs): UnderwritingResult {
     loanByDCR,
     loanTaken,
     bindingConstraint,
+    premiumRate: premRate,
     premium,
     financedLoan,
     annualDebtService,

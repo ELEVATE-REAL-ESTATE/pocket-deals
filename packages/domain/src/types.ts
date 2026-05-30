@@ -16,8 +16,27 @@ export interface FinancingProgram {
   minDCR: number;
   /** Amortissement maximal autorisé (années). */
   maxAmort: number;
-  /** Taux de prime SCHL appliqué au prêt de base (fraction, 0 si conventionnel). */
+  /** Programme assuré SCHL (prime applicable) ? false = conventionnel. */
+  insured: boolean;
+  /** Admissible au rabais de pointage MLI Select ? */
+  pointsEligible: boolean;
+}
+
+/** Une bande du barème de prime : prime de base si le RPV du prêt est ≤ maxLTV. */
+export interface PremiumScheduleBand {
+  maxLTV: number;
   premium: number;
+}
+
+/** Barème de prime SCHL (tarification au risque, 14 juillet 2025). */
+export interface PremiumSchedule {
+  /** Prime de base par bande de RPV (croissante). */
+  baseByLTV: PremiumScheduleBand[];
+  /** Surcharge par tranche de 5 ans d'amortissement au-delà de `surchargeBaseYears`. */
+  amortSurchargePer5yr: number;
+  surchargeBaseYears: number;
+  /** Rabais MLI Select selon le pointage (clé = points : "0" | "50" | "70" | "100"). */
+  pointsDiscounts: Record<string, number>;
 }
 
 /** Dépenses d'exploitation, ventilées par catégorie. */
@@ -55,8 +74,12 @@ export interface DealInputs {
   rate: number;
   /** Amortissement demandé (années) — plafonné par program.maxAmort. */
   amort: number;
-  /** Prime SCHL appliquée, en % (ex. 4.0). */
-  premiumPct: number;
+  /** Barème de prime SCHL (depuis @elevate/config). */
+  premiumSchedule: PremiumSchedule;
+  /** Pointage MLI Select : 0 | 50 | 70 | 100 (ignoré si programme non admissible). */
+  mliPoints: number;
+  /** Surcharge de prime manuelle, en % — si > 0, remplace la prime calculée. */
+  premiumOverridePct?: number;
 
   /** Cap de marché suggéré, en % (ex. 5.0) — sert à la valeur implicite et à la sortie. */
   capMktPct: number;
@@ -102,6 +125,8 @@ export interface UnderwritingResult {
   loanByDCR: number;
   loanTaken: number;
   bindingConstraint: "value" | "coverage";
+  /** Taux de prime SCHL appliqué (fraction) — calculé ou surchargé. */
+  premiumRate: number;
   premium: number;
   financedLoan: number;
   annualDebtService: number;

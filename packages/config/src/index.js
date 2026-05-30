@@ -38,12 +38,31 @@ export const MARKET_DATA = {
     asOf: "2025-Q4",
     source: "SCHL — MLI Standard & MLI Select 2025-2026 ; normes bancaires conventionnelles",
     items: {
-      "conv":    { label:"Conventionnel (non assuré)",  maxLTV:0.75, minDCR:1.25, maxAmort:30, premium:0,
+      "conv":    { label:"Conventionnel (non assuré)",  maxLTV:0.75, minDCR:1.25, maxAmort:30, insured:false, pointsEligible:false,
                    hint:"Prêteur bancaire — jusqu’à 75 % RPV, RCD min 1,25, amort. 25–30 ans." },
-      "mli-std": { label:"SCHL — MLI Standard (assuré)", maxLTV:0.85, minDCR:1.20, maxAmort:40, premium:0.040,
+      "mli-std": { label:"SCHL — MLI Standard (assuré)", maxLTV:0.85, minDCR:1.20, maxAmort:40, insured:true,  pointsEligible:false,
                    hint:"Assuré SCHL — jusqu’à 85 % RPV, RCD min 1,20, amort. jusqu’à 40 ans." },
-      "mli-sel": { label:"SCHL — MLI Select (assuré)",   maxLTV:0.95, minDCR:1.10, maxAmort:50, premium:0.045,
+      "mli-sel": { label:"SCHL — MLI Select (assuré)",   maxLTV:0.95, minDCR:1.10, maxAmort:50, insured:true,  pointsEligible:true,
                    hint:"Pointage (abordabilité, efficacité, accessibilité) — jusqu’à 95 % RPV, RCD min 1,10, amort. jusqu’à 50 ans." }
+    },
+    // Barème de prime SCHL — tarification AU RISQUE (en vigueur 14 juillet 2025).
+    // prime = (base selon RPV + surcharge d'amortissement) × (1 − rabais pointage).
+    // Valeurs approximatives (sources secondaires) — à affiner avec le tableau officiel SCHL / un prêteur.
+    premiumSchedule: {
+      asOf: "2025-07-14",
+      source: "SCHL — tarification au risque (14 juillet 2025) ; LendCity, buildingsforsaletoronto — valeurs approximatives",
+      // Prime de base : première bande dont le RPV du prêt est ≤ maxLTV
+      baseByLTV: [
+        { maxLTV: 0.65, premium: 0.0245 },
+        { maxLTV: 0.75, premium: 0.0250 },
+        { maxLTV: 0.80, premium: 0.0475 },
+        { maxLTV: 0.85, premium: 0.0550 },
+        { maxLTV: 0.90, premium: 0.0585 },
+        { maxLTV: 0.95, premium: 0.0615 }
+      ],
+      amortSurchargePer5yr: 0.0025, // +0,25 % par tranche de 5 ans
+      surchargeBaseYears: 25,       // au-delà de 25 ans
+      pointsDiscounts: { "0": 0, "50": 0.10, "70": 0.20, "100": 0.30 } // MLI Select seulement
     }
   },
 

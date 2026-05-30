@@ -109,10 +109,10 @@ $('construction').value = 'bois';
 $('program').addEventListener('change', () => {
   const p = PROGRAMS[$('program').value];
   $('amort').value = p.maxAmort;
-  $('premium').value = (p.premium*100).toFixed(1);
   applySuggestedRate();   // taux = oblig. 5 ans + écart du programme
   calc();
 });
+$('mli-points').addEventListener('change', calc);
 
 // Bouton « Normaliser SCHL » — applique les barèmes selon le nombre d'unités,
 // la construction et les équipements présents.
@@ -142,8 +142,12 @@ function readDealInputs() {
       water: num('water'), repairs: num('repairs'), caretaking: num('caretaking'),
       mgmtPct: num('mgmt'), reservePerDoor: num('reserve'), misc: num('misc'),
     },
-    program: { maxLTV: prog.maxLTV, minDCR: prog.minDCR, maxAmort: prog.maxAmort, premium: prog.premium },
-    rate: num('rate'), amort: num('amort'), premiumPct: num('premium'),
+    program: { maxLTV: prog.maxLTV, minDCR: prog.minDCR, maxAmort: prog.maxAmort,
+               insured: prog.insured, pointsEligible: prog.pointsEligible },
+    rate: num('rate'), amort: num('amort'),
+    premiumSchedule: MD.programs.premiumSchedule,
+    mliPoints: num('mli-points'),
+    premiumOverridePct: num('premium'), // 0/vide → prime calculée
     capMktPct: (region.baseCap + asset.spread) * 100,
     hold: num('hold'), rentGrowthPct: num('rentg'), expenseGrowthPct: num('expg'),
     exitCapPct: num('exitcap'), sellingPct: num('selling'),
@@ -163,7 +167,7 @@ function calc() {
   const capRate = r.capRate, capMkt = r.capMkt, impliedValue = r.impliedValue;
   const loanLTV = r.loanByLTV, loanDCR = r.loanByDCR, baseLoan = r.loanTaken;
   const binding = r.bindingConstraint === 'coverage' ? 'couverture' : 'valeur';
-  const premium = r.premium, annualDebt = r.annualDebtService;
+  const premium = r.premium, premiumRate = r.premiumRate, annualDebt = r.annualDebtService;
   const equityIn = r.equityInvested, downPctEff = r.downPaymentPct;
   const dscr = r.dscr, cf1 = r.cashFlowYr1, coc = r.cashOnCash;
   const hold = r.proforma.length, em = r.equityMultiple, irrVal = r.irr;
@@ -214,7 +218,7 @@ function calc() {
   $('l-dcr').textContent = compact(loanDCR);
   $('l-bind').textContent = compact(baseLoan);
   $('bind-lbl').textContent = `(plafonné par ${binding})`;
-  $('l-prem').textContent = premium>0 ? compact(premium) : '—';
+  $('l-prem').textContent = premium>0 ? `${compact(premium)} · ${pct(premiumRate)}` : '—';
   $('l-debt').textContent = fmt(annualDebt);
   $('l-dp').textContent = compact(equityIn);
   $('dp-lbl').textContent = `(${pct(downPctEff,0)} + frais)`;
@@ -253,6 +257,9 @@ function calc() {
   const sp = MD.rates.spreads[$('program').value];
   const baseLbl = sp && sp.base === 'cmb5yr' ? `CMB 5 ans ${pct(cmb5yr())}` : `oblig. 5 ans ${pct(RATES.goc5yr)}`;
   $('h-rate').textContent = `Suggéré ${pct(suggestedRate())} — ${baseLbl} + écart ${pct(sp ? sp.spread : 0)}`;
+  $('h-premium').textContent = !prog.insured ? 'Non assuré — aucune prime'
+    : num('premium') > 0 ? `Manuelle ${pct(premiumRate)}`
+    : `Calculée ${pct(premiumRate)} (RPV+amort${prog.pointsEligible ? '−points' : ''})`;
 
   $('program-hint').textContent = prog.hint;
 }

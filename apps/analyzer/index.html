@@ -138,15 +138,27 @@
         </div>
 
         <div class="section-label">Financement</div>
-        <div class="field">
-          <label for="program">Programme</label>
-          <select id="program"></select>
-          <div class="hint" id="program-hint"></div>
+        <div class="field-row">
+          <div class="field">
+            <label for="program">Programme</label>
+            <select id="program"></select>
+            <div class="hint" id="program-hint"></div>
+          </div>
+          <div class="field">
+            <label for="mli-points">Points MLI Select</label>
+            <select id="mli-points">
+              <option value="100">100 points (−30 %)</option>
+              <option value="70">70 points (−20 %)</option>
+              <option value="50">50 points (−10 %)</option>
+              <option value="0">Aucun</option>
+            </select>
+            <div class="hint">Rabais de prime — MLI Select seulement</div>
+          </div>
         </div>
         <div class="field-row-3">
           <div class="field"><label for="rate">Taux d'intérêt</label><div class="input-suffix"><span>%</span><input type="number" id="rate" value="5.25" min="0" step="0.05"></div><div class="hint schl" id="h-rate">—</div></div>
           <div class="field"><label for="amort">Amortissement</label><div class="input-suffix"><span>ans</span><input type="number" id="amort" value="40" min="1" step="1"></div></div>
-          <div class="field"><label for="premium">Prime SCHL</label><div class="input-suffix"><span>%</span><input type="number" id="premium" value="4.0" min="0" step="0.1"></div></div>
+          <div class="field"><label for="premium">Prime (override)</label><div class="input-suffix"><span>%</span><input type="number" id="premium" placeholder="auto" min="0" step="0.1"></div><div class="hint schl" id="h-premium">—</div></div>
         </div>
 
         <div class="section-label">Croissance & revente</div>
