@@ -749,6 +749,7 @@ function renderHeader(activeAdmin = false) {
           <div class="brand-name">Elevate <span class="small">Deal Room</span></div>
         </a>
         <nav class="topbar-nav">
+          <a href="analyzer.html">Analyseur</a>
           ${activeAdmin
             ? `<a href="#" onclick="doLogout(event); return false;">Déconnexion</a>`
             : `<a href="https://elevatelocatif.ca/" target="_blank">Elevate Real Estate</a>
@@ -785,6 +786,10 @@ function renderLanding(app) {
                 <div><strong>Confidentiel</strong>NDA & non-contournement</div>
                 <div><strong>Sélectionné</strong>Deals filtrés par l'opérateur</div>
                 <div><strong>Direct</strong>Aucun intermédiaire ajouté</div>
+              </div>
+              <div style="margin-top:28px; display:flex; gap:14px; flex-wrap:wrap;">
+                <a href="analyzer.html" class="btn btn-primary btn-lg">Analyser un deal →</a>
+                <span class="eyebrow" style="align-self:center;">NOI · Cap rate · RCD · Prêt max SCHL</span>
               </div>
             </div>
             <div class="hero-card">
