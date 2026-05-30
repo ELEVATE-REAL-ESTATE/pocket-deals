@@ -61,7 +61,9 @@ export function evaluate(result: UnderwritingResult, obj: InvestmentObjectives):
       detail:
         irrPct === null
           ? "non calculable (le capital n'est pas récupéré)"
-          : `${f1(irrPct)} % vs cible ${f1(obj.targetIRRPct)} % (${irrPct >= obj.targetIRRPct ? "+" : ""}${f1(irrPct - obj.targetIRRPct)} pts)`,
+          : !isFinite(irrPct)
+            ? `≥ 1000 % (très élevé) — dépasse la cible ${f1(obj.targetIRRPct)} %`
+            : `${f1(irrPct)} % vs cible ${f1(obj.targetIRRPct)} % (${irrPct >= obj.targetIRRPct ? "+" : ""}${f1(irrPct - obj.targetIRRPct)} pts)`,
     },
     {
       ok: dscrOk,

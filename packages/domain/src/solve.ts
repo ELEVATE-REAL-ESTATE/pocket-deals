@@ -32,11 +32,11 @@ function meetsObjectives(inputs: DealInputs, obj: InvestmentObjectives, price: n
 
 export function maxPurchasePrice(inputs: DealInputs, obj: InvestmentObjectives): MaxPriceResult {
   const askingPrice = inputs.price;
-  // Borne basse saine : à un prix dérisoire, les rendements sont si élevés que le
-  // TRI n'est plus calculable (NPV positif au-delà de 1000 %). On ne sonde donc
-  // pas sous ~10 % du prix demandé (un deal exigeant >90 % de rabais = non viable).
-  const lo0 = Math.max(10_000, askingPrice * 0.1);
-  const hi0 = Math.max(askingPrice * 3, askingPrice + 1, 100);
+  // Bornes indépendantes du prix demandé : le prix max dépend du REVENU, pas du
+  // prix affiché. On encadre largement (le prix max d'un deal à fort NOI peut
+  // dépasser un prix demandé minuscule). underwrite() est bon marché.
+  const lo0 = 1000;
+  const hi0 = Math.max(askingPrice * 3, 100_000_000);
 
   let maxPrice: number;
   if (!meetsObjectives(inputs, obj, lo0)) {

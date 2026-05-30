@@ -73,6 +73,23 @@ describe("pro forma — données annuelles investisseur (F5)", () => {
     const last = r.proforma[r.proforma.length - 1]!;
     expect(r.netSaleProceeds).toBeCloseTo(last.propertyValue * (1 - 0.04) - last.loanBalance, 2);
   });
+
+  it("sources de rendement : capitalisation + prise de valeur cohérentes", () => {
+    // somme du capital remboursé = solde initial − solde final
+    const totalPaid = r.proforma.reduce((a, p) => a + p.principalPaid, 0);
+    const lastBal = r.proforma[r.proforma.length - 1]!.loanBalance;
+    expect(totalPaid).toBeCloseTo(r.financedLoan - lastBal, 2);
+    // prise de valeur année y = valeur y − valeur y−1
+    for (let i = 1; i < r.proforma.length; i++) {
+      expect(r.proforma[i]!.appreciation).toBeCloseTo(
+        r.proforma[i]!.propertyValue - r.proforma[i - 1]!.propertyValue,
+        2,
+      );
+    }
+    // deal en croissance → capitalisation et prise de valeur positives
+    expect(r.proforma.every((p) => p.principalPaid > 0)).toBe(true);
+    expect(r.proforma.every((p) => p.appreciation > 0)).toBe(true);
+  });
 });
 
 // =====================================================================
@@ -240,5 +257,21 @@ describe("recommend — décision complète (F1+F2+F9)", () => {
   it("PASS : NOI ≤ 0", () => {
     const d = recommend(deal({ expenses: { ...deal().expenses, misc: 400_000 } }), LENIENT);
     expect(d.recommendation.verdict).toBe("PASS");
+  });
+
+  // Régression : un prix BAS doit ENCOURAGER l'achat (TRI trop élevé ≠ échec).
+  it("un prix très bas → BUY (TRI surpuissant traité comme +∞, pas comme échec)", () => {
+    for (const price of [5, 50, 500, 500_000]) {
+      const d = recommend(deal({ price }), LENIENT);
+      expect(d.recommendation.verdict).toBe("BUY");
+    }
+  });
+
+  it("monotonie du verdict : plus le prix monte, moins c'est un BUY", () => {
+    const cheap = recommend(deal({ price: 1_000_000 }), LENIENT).recommendation.verdict;
+    const dear = recommend(deal({ price: 6_000_000 }), LENIENT).recommendation.verdict;
+    const rank = { BUY: 2, RENEGOTIATE: 1, PASS: 0 };
+    expect(rank[cheap]).toBeGreaterThanOrEqual(rank[dear]);
+    expect(cheap).toBe("BUY"); // 1 M$ pour ce NOI = excellent
   });
 });

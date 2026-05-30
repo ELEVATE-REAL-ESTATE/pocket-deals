@@ -109,6 +109,8 @@ export function underwrite(input: DealInputs): UnderwritingResult {
   const annualCfs: number[] = [];
   let cumulative = 0;
   let netSaleProceeds = 0;
+  let prevBal = financedLoan; // solde initial (avant tout remboursement)
+  let prevValue = exitCap > 0 ? (egi - opex) / exitCap : 0; // valeur à l'acquisition
 
   for (let y = 1; y <= hold; y++) {
     const rev = egi * Math.pow(1 + rentG, y - 1);
@@ -124,6 +126,8 @@ export function underwrite(input: DealInputs): UnderwritingResult {
     const propertyValue = exitCap > 0 ? fwdNoi / exitCap : 0;
     const equityY = propertyValue - bal;
     const saleY = propertyValue * (1 - selling) - bal;
+    const principalPaid = prevBal - bal; // capitalisation de l'année
+    const appreciation = propertyValue - prevValue; // prise de valeur de l'année
 
     // TRI si l'immeuble était revendu à la fin de l'année y
     const periodIRR = irr([-equityInvested, ...annualCfs.slice(0, y - 1), yCf + saleY]);
@@ -137,6 +141,8 @@ export function underwrite(input: DealInputs): UnderwritingResult {
       propertyValue,
       equity: equityY,
       cumulativeCashFlow: cumulative,
+      principalPaid,
+      appreciation,
       periodIRR,
     });
 
@@ -146,6 +152,8 @@ export function underwrite(input: DealInputs): UnderwritingResult {
       flow += netSaleProceeds;
     }
     flows.push(flow);
+    prevBal = bal;
+    prevValue = propertyValue;
   }
 
   const totalCf = proforma.reduce((acc, r) => acc + r.cashFlow, 0);

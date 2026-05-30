@@ -1,6 +1,14 @@
 import "./styles.css";
-import { underwrite } from "@elevate/domain";
+import {
+  underwrite,
+  recommend,
+  exitCapTable,
+  rateTable,
+  ratesFromDeltas,
+  DEFAULT_EXIT_CAPS,
+} from "@elevate/domain";
 import { MARKET_DATA } from "@elevate/config";
+import { renderEquityChart } from "./chart.js";
 
 const $ = id => document.getElementById(id);
 const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
@@ -8,6 +16,8 @@ const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; 
 const fmt = (v, dp=0) => (v<0?'-':'') + '$' + Math.abs(v).toLocaleString('fr-CA', {minimumFractionDigits:dp, maximumFractionDigits:dp});
 const pct = (v, dp=2) => (v*100).toLocaleString('fr-CA',{minimumFractionDigits:dp,maximumFractionDigits:dp}) + ' %';
 const compact = v => { const a=Math.abs(v), s=v<0?'-':''; if(a>=1e6) return s+'$'+(a/1e6).toFixed(2)+' M'; if(a>=1e3) return s+'$'+(a/1e3).toFixed(0)+' k'; return fmt(v); };
+// Affichage TRI : null = n/d, +∞ (trop rentable) = > 999 %
+const irrTxt = (v, dp=1) => v===null ? 'n/d' : !isFinite(v) ? '> 999 %' : pct(v, dp);
 
 // ---- Données de marché — chargées depuis market-data.js (source unique) ----
 const MD = MARKET_DATA;
@@ -158,8 +168,10 @@ function calc() {
   const prog  = PROGRAMS[$('program').value];
   const input = readDealInputs();
 
-  // ★ Moteur partagé — toute la logique financière vit dans @elevate/domain
-  const r = underwrite(input);
+  // ★ Moteur partagé — underwriting + décision d'acquisition vivent dans @elevate/domain
+  const obj = readObjectives();
+  const decision = recommend(input, obj);
+  const r = decision.result;
 
   // Adaptateur résultat → variables locales utilisées par le bloc de rendu ci-dessous
   const price = input.price, units = input.units, sqft = input.sqft, gross = input.grossRevenue;
@@ -207,7 +219,7 @@ function calc() {
   setDot('d-coc', coc>=0.06?'good':coc>=0.03?'ok':'bad');
   $('em-hold').textContent = hold;
   $('m-em').textContent = em.toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2})+'×';
-  $('m-irr').textContent = irrVal===null?'n/d':pct(irrVal,1);
+  $('m-irr').textContent = irrTxt(irrVal);
   setDot('d-em', em>=1.8?'good':em>=1.3?'ok':'bad');
 
   // Financement
@@ -262,6 +274,107 @@ function calc() {
     : `Calculée ${pct(premiumRate)} (RPV+amort${prog.pointsEligible ? '−points' : ''})`;
 
   $('program-hint').textContent = prog.hint;
+
+  // ===== Décision d'investissement (Slice B) =====
+  renderDecision(decision, input, obj);
+}
+
+// ---- Objectifs d'investissement ----
+function readObjectives() {
+  return {
+    targetIRRPct: num('obj-irr'),
+    minDSCR: num('obj-dscr'),
+    minCashOnCashPct: num('obj-coc'),
+    minEquityMultiple: num('obj-em'),
+    targetHoldYears: num('hold'),
+  };
+}
+
+function renderDecision(decision, input, obj) {
+  renderReco(decision.recommendation);
+  renderMaxPrice(decision.maxPrice);
+  renderSensCap(input, obj);
+  renderSensRate(input, obj);
+  renderFlags(decision.redFlags);
+  renderEquityChart($('chart'), decision.result.proforma);
+  $('chart-legend').innerHTML =
+    '<span><i style="background:var(--success)"></i>Cash-on-cash</span>' +
+    '<span><i style="background:var(--gold)"></i>Capitalisation</span>' +
+    '<span><i style="background:var(--accent)"></i>Prise de valeur</span>' +
+    '<span><i style="background:var(--ink)"></i>TRI cumulé</span>' +
+    '<span style="color:var(--muted)">— survol pour les chiffres</span>';
+}
+
+// F1 — recommandation
+function renderReco(rec) {
+  const map = { BUY: ['buy', 'ACHETER'], RENEGOTIATE: ['reno', 'RENÉGOCIER'], PASS: ['pass', 'PASSER'] };
+  const [cls, label] = map[rec.verdict] || ['pass', '—'];
+  const badge = $('reco-badge');
+  badge.className = 'reco-badge ' + cls;
+  badge.textContent = label;
+  $('reco-reasons').innerHTML = rec.reasons.map(x =>
+    `<li class="${x.ok ? 'ok' : 'no'}"><span class="ic">${x.ok ? '✓' : '✗'}</span>` +
+    `<span class="rl">${x.label}</span><span class="rd">${x.detail}</span></li>`).join('');
+}
+
+// F2 — prix maximal
+function renderMaxPrice(mp) {
+  $('mp-asking').textContent = compact(mp.askingPrice);
+  $('mp-reco').textContent = mp.feasible ? compact(mp.recommendedPrice) : '—';
+  $('mp-max').textContent = mp.feasible ? compact(mp.maxPrice) : '—';
+  const diff = mp.maxPrice - mp.askingPrice;
+  $('mp-diff').textContent = mp.feasible ? (diff >= 0 ? '+' : '') + compact(diff) : '—';
+  let note;
+  if (!mp.feasible) {
+    note = "Aucun prix n'atteint les objectifs — revoir les hypothèses ou assouplir les cibles.";
+  } else if (mp.meetsAtAsking) {
+    note = `Le deal atteint les objectifs au prix demandé. Marge de sécurité ${pct(mp.marginOfSafety, 0)} sous le plafond — fourchette de négociation ${compact(mp.negotiationRange.low)} à ${compact(mp.negotiationRange.high)}.`;
+  } else {
+    note = `Rabais requis ${pct(mp.discountPct, 0)} (${compact(mp.discountNeeded)}) pour atteindre les objectifs. Offre suggérée autour de ${compact(mp.recommendedPrice)}.`;
+  }
+  $('mp-note').textContent = note;
+}
+
+// F3 — sensibilité au cap de sortie
+function renderSensCap(input, obj) {
+  const rows = exitCapTable(input, DEFAULT_EXIT_CAPS);
+  const curExit = num('exitcap') > 0 ? num('exitcap') : input.capMktPct;
+  $('sens-cap').innerHTML = rows.map(row => {
+    const irrPct = row.irr === null ? null : row.irr * 100;
+    const cls = irrPct === null ? 'cell-bad'
+      : irrPct >= obj.targetIRRPct ? 'cell-good'
+      : irrPct >= obj.targetIRRPct - 3 ? 'cell-ok' : 'cell-bad';
+    const cur = Math.abs(row.exitCapPct - curExit) < 0.001 ? ' class="cur"' : '';
+    return `<tr${cur}><td>${pct(row.exitCapPct / 100, 2)}</td><td>${compact(row.propertyValue)}</td>` +
+      `<td>${compact(row.netToEquity)}</td><td class="${cls}">${irrTxt(row.irr)}</td>` +
+      `<td>${row.equityMultiple.toFixed(2)}×</td></tr>`;
+  }).join('');
+}
+
+// F4 — sensibilité au taux d'intérêt
+function renderSensRate(input, obj) {
+  const rows = rateTable(input, ratesFromDeltas(num('rate')));
+  $('sens-rate').innerHTML = rows.map((row, i) => {
+    const cls = !isFinite(row.dscr) || row.dscr >= obj.minDSCR ? 'cell-good'
+      : row.dscr >= obj.minDSCR - 0.1 ? 'cell-ok' : 'cell-bad';
+    const cur = i === 0 ? ' class="cur"' : '';
+    return `<tr${cur}><td>${pct(row.ratePct / 100, 2)}</td><td>${fmt(row.annualDebtService)}</td>` +
+      `<td class="${cls}">${isFinite(row.dscr) ? row.dscr.toFixed(2) : '∞'}</td>` +
+      `<td class="${row.cashFlowYr1 >= 0 ? '' : 'cell-bad'}">${fmt(row.cashFlowYr1)}</td>` +
+      `<td>${irrTxt(row.irr)}</td></tr>`;
+  }).join('');
+}
+
+// F9 — drapeaux rouges
+function renderFlags(flags) {
+  $('flags-count').textContent = flags.length === 0 ? 'aucun' : `${flags.length} alerte${flags.length > 1 ? 's' : ''}`;
+  $('flags-list').innerHTML = flags.length === 0
+    ? '<div class="flags-none">✓ Aucun drapeau rouge détecté.</div>'
+    : flags.map(f =>
+        `<div class="flag-card ${f.severity}"><div class="ft">${f.title}</div>` +
+        `<div class="fl"><b>Pourquoi</b> · ${f.why}</div>` +
+        `<div class="fl"><b>Impact</b> · ${f.impact}</div>` +
+        `<div class="fl"><b>Mitigation</b> · ${f.mitigation}</div></div>`).join('');
 }
 
 function renderFreshness() {

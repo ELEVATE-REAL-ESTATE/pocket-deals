@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="./assets/index-Dk3exmgw.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-Cf25S3Py.css">
+  <script type="module" crossorigin src="./assets/index-_0__WGEB.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CnDBY80m.css">
 </head>
 <body>
 
@@ -174,6 +174,16 @@
           <div class="field"><label for="selling">Frais de vente</label><div class="input-suffix"><span>%</span><input type="number" id="selling" value="4" min="0" step="0.5"></div></div>
         </div>
 
+        <div class="section-label">Objectif d'investissement</div>
+        <div class="field-row">
+          <div class="field"><label for="obj-irr">TRI cible</label><div class="input-suffix"><span>%</span><input type="number" id="obj-irr" value="12" min="0" step="0.5"></div></div>
+          <div class="field"><label for="obj-dscr">RCD minimal</label><input type="number" id="obj-dscr" value="1.20" min="0" step="0.05"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="obj-coc">Rend. comptant min</label><div class="input-suffix"><span>%</span><input type="number" id="obj-coc" value="6" min="0" step="0.5"></div></div>
+          <div class="field"><label for="obj-em">Multiple d'équité min</label><input type="number" id="obj-em" value="1.8" min="0" step="0.1"></div>
+        </div>
+
       </div>
     </form>
 
@@ -189,6 +199,18 @@
         <div class="cf-value mono" id="cashflow">—</div>
         <div class="cf-sub" id="cashflow-sub">—</div>
       </div>
+
+      <!-- Recommandation (F1) -->
+      <div class="reco" id="reco">
+        <div class="reco-head">
+          <span class="reco-badge" id="reco-badge">—</span>
+          <span class="reco-sub">Recommandation d'acquisition</span>
+        </div>
+        <ul class="reco-reasons" id="reco-reasons"></ul>
+      </div>
+
+      <div class="res-cols">
+      <div class="res-col">
 
       <!-- Évaluation -->
       <div class="group">
@@ -206,6 +228,8 @@
           </div>
         </div>
       </div>
+      </div>
+      <div class="res-col">
 
       <!-- Rendement -->
       <div class="group">
@@ -216,6 +240,8 @@
           <div class="metric"><div class="m-label"><span class="dot" id="d-coc"></span>Rend. comptant</div><div class="m-value mono" id="m-coc">—</div><div class="m-note">cash-on-cash an 1</div></div>
           <div class="metric"><div class="m-label"><span class="dot" id="d-em"></span>Mult. d'équité</div><div class="m-value mono" id="m-em">—</div><div class="m-note"><span id="em-hold">5</span> ans · TRI <span id="m-irr" style="color:var(--ink-soft)">—</span></div></div>
         </div>
+      </div>
+      </div>
       </div>
 
       <!-- Financement -->
@@ -251,6 +277,49 @@
           <thead><tr><th>Année</th><th>RBE</th><th>Service dette</th><th>Flux</th><th>Solde prêt</th></tr></thead>
           <tbody id="pf-body"></tbody>
         </table>
+      </div>
+
+      <!-- Prix maximal (F2) -->
+      <div class="group">
+        <h3>Prix maximal pour atteindre les objectifs</h3>
+        <div class="price-grid">
+          <div class="price-cell"><span>Prix demandé</span><b class="mono" id="mp-asking">—</b></div>
+          <div class="price-cell hl"><span>Prix recommandé</span><b class="mono" id="mp-reco">—</b></div>
+          <div class="price-cell"><span>Prix maximal</span><b class="mono" id="mp-max">—</b></div>
+          <div class="price-cell"><span>Écart vs demandé</span><b class="mono" id="mp-diff">—</b></div>
+        </div>
+        <div class="mp-note" id="mp-note">—</div>
+      </div>
+
+      <!-- Sensibilité cap de sortie (F3) -->
+      <div class="group">
+        <h3>Sensibilité — cap de sortie</h3>
+        <table class="sens-table">
+          <thead><tr><th>Cap sortie</th><th>Valeur</th><th>Produit net</th><th>TRI</th><th>Multiple</th></tr></thead>
+          <tbody id="sens-cap"></tbody>
+        </table>
+      </div>
+
+      <!-- Sensibilité taux (F4) -->
+      <div class="group">
+        <h3>Sensibilité — taux d'intérêt</h3>
+        <table class="sens-table">
+          <thead><tr><th>Taux</th><th>Service dette</th><th>RCD</th><th>Flux an 1</th><th>TRI</th></tr></thead>
+          <tbody id="sens-rate"></tbody>
+        </table>
+      </div>
+
+      <!-- Croissance équité & TRI (F5) -->
+      <div class="group">
+        <h3>Croissance de l'équité &amp; TRI</h3>
+        <div class="chart" id="chart"></div>
+        <div class="chart-legend" id="chart-legend"></div>
+      </div>
+
+      <!-- Drapeaux rouges (F9) -->
+      <div class="group">
+        <h3>Drapeaux rouges · <span id="flags-count" style="color:var(--ink-soft)">—</span></h3>
+        <div id="flags-list"></div>
       </div>
 
       <p class="disclaimer">

@@ -310,9 +310,9 @@ describe("DSCR — cas limites", () => {
 // 5. IRR — cas limites
 // ---------------------------------------------------------------------------
 describe("IRR — cas limites", () => {
-  it("null quand pas de changement de signe", () => {
-    expect(irr([-100, -50, -50])).toBeNull(); // que des sorties
-    expect(irr([100, 50, 50])).toBeNull(); // que des entrées
+  it("pas de changement de signe : +∞ si trop rentable, null si jamais récupéré", () => {
+    expect(irr([-100, -50, -50])).toBeNull(); // que des sorties → jamais récupéré
+    expect(irr([100, 50, 50])).toBe(Infinity); // que des entrées → rendement infini
   });
 
   it("propriété définitoire : NPV au taux IRR ≈ 0", () => {

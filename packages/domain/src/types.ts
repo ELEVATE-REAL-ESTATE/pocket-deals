@@ -109,6 +109,10 @@ export interface ProformaRow {
   equity: number;
   /** Flux d'exploitation cumulés (hors revente). */
   cumulativeCashFlow: number;
+  /** Capital remboursé cette année (capitalisation = réduction du solde). */
+  principalPaid: number;
+  /** Prise de valeur cette année (hausse de la valeur de l'immeuble). */
+  appreciation: number;
   /** TRI si l'immeuble était revendu à la fin de cette année (null si non calculable). */
   periodIRR: number | null;
 }
