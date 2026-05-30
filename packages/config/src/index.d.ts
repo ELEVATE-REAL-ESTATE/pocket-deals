@@ -35,6 +35,25 @@ export interface LabeledSpread {
   spread: number;
 }
 
+export interface RentSet {
+  studio: number | null;
+  br1: number | null;
+  br2: number | null;
+  br3: number | null;
+}
+export interface MarketRentRegion {
+  label: string;
+  group: string;
+  capBucket: string;
+  rents: RentSet;
+}
+export interface MarketRents {
+  asOf: string;
+  source: string;
+  groups: string[];
+  regions: Record<string, MarketRentRegion>;
+}
+
 export interface MarketData {
   meta: { lastUpdated: string; note: string };
   rates: {
@@ -72,6 +91,7 @@ export interface MarketData {
     regions: Record<string, LabeledCap>;
     assetSpreads: Record<string, LabeledSpread>;
   };
+  marketRents: MarketRents;
 }
 
 export declare const MARKET_DATA: MarketData;

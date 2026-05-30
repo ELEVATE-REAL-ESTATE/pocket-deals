@@ -46,6 +46,29 @@
       <div class="panel-head"><h2>Hypothèses</h2><span class="eyebrow">Montants annuels</span></div>
       <div class="panel-body">
 
+        <div class="section-label">Objectif d'investissement</div>
+        <div class="hint" style="margin:-6px 0 12px;">Définis tes cibles d'abord — la recommandation et le prix maximal en découlent.</div>
+        <div class="field-row">
+          <div class="field"><label for="obj-irr">TRI cible</label><div class="input-suffix"><span>%</span><input type="number" id="obj-irr" value="12" min="0" step="0.5"></div></div>
+          <div class="field"><label for="obj-dscr">RCD minimal</label><input type="number" id="obj-dscr" value="1.20" min="0" step="0.05"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label for="obj-coc">Rend. comptant min</label><div class="input-suffix"><span>%</span><input type="number" id="obj-coc" value="6" min="0" step="0.5"></div></div>
+          <div class="field"><label for="obj-em">Multiple d'équité min</label><input type="number" id="obj-em" value="1.8" min="0" step="0.1"></div>
+        </div>
+
+        <div class="section-label">Croissance & revente</div>
+        <div class="field-row-3">
+          <div class="field"><label for="hold">Détention</label><div class="input-suffix"><span>ans</span><input type="number" id="hold" value="5" min="1" max="40" step="1"></div></div>
+          <div class="field"><label for="rentg">Croiss. loyers</label><div class="input-suffix"><span>%</span><input type="number" id="rentg" value="3" step="0.5"></div></div>
+          <div class="field"><label for="expg">Croiss. dépenses</label><div class="input-suffix"><span>%</span><input type="number" id="expg" value="2.5" step="0.5"></div></div>
+        </div>
+        <div class="field-row-3">
+          <div class="field"><label for="cap-mkt">Cap marché</label><div class="input-suffix"><span>%</span><input type="number" id="cap-mkt" min="0" step="0.05"></div><div class="hint">Auto par région · ajustable</div></div>
+          <div class="field"><label for="exitcap">Cap de sortie</label><div class="input-suffix"><span>%</span><input type="number" id="exitcap" placeholder="marché" min="0" step="0.1"></div><div class="hint">Vide = cap marché</div></div>
+          <div class="field"><label for="selling">Frais de vente</label><div class="input-suffix"><span>%</span><input type="number" id="selling" value="4" min="0" step="0.5"></div></div>
+        </div>
+
         <div class="section-label">Immeuble</div>
         <div class="field-row">
           <div class="field">
@@ -110,6 +133,18 @@
           <div class="input-suffix"><span>%</span><input type="number" id="vacancy" value="4" min="0" step="0.5"></div>
         </div>
 
+        <div class="section-label">Mix locatif & marché</div>
+        <div class="hint" style="margin:-6px 0 12px;">Optionnel — saisis le nombre d'unités et le loyer actuel par type pour comparer aux loyers SCHL de ta région (potentiel de valorisation).</div>
+        <table class="mix-table">
+          <thead><tr><th>Type</th><th>Nb</th><th>Loyer actuel</th><th>Marché SCHL</th></tr></thead>
+          <tbody>
+            <tr><td>Studio</td><td><input type="number" id="mix-studio-n" min="0" step="1" placeholder="0"></td><td><input type="number" id="mix-studio-r" min="0" step="10" placeholder="$"></td><td class="mono" id="mkt-studio">—</td></tr>
+            <tr><td>3½ · 1 ch.</td><td><input type="number" id="mix-br1-n" min="0" step="1" placeholder="0"></td><td><input type="number" id="mix-br1-r" min="0" step="10" placeholder="$"></td><td class="mono" id="mkt-br1">—</td></tr>
+            <tr><td>4½ · 2 ch.</td><td><input type="number" id="mix-br2-n" min="0" step="1" placeholder="0"></td><td><input type="number" id="mix-br2-r" min="0" step="10" placeholder="$"></td><td class="mono" id="mkt-br2">—</td></tr>
+            <tr><td>5½+ · 3 ch.</td><td><input type="number" id="mix-br3-n" min="0" step="1" placeholder="0"></td><td><input type="number" id="mix-br3-r" min="0" step="10" placeholder="$"></td><td class="mono" id="mkt-br3">—</td></tr>
+          </tbody>
+        </table>
+
         <div class="section-label">Dépenses d'exploitation
           <button type="button" id="normalize" title="Appliquer les normes d'underwriting SCHL">Normaliser SCHL</button>
         </div>
@@ -161,27 +196,6 @@
           <div class="field"><label for="premium">Prime (override)</label><div class="input-suffix"><span>%</span><input type="number" id="premium" placeholder="auto" min="0" step="0.1"></div><div class="hint schl" id="h-premium">—</div></div>
         </div>
 
-        <div class="section-label">Croissance & revente</div>
-        <div class="field-row-3">
-          <div class="field"><label for="hold">Détention</label><div class="input-suffix"><span>ans</span><input type="number" id="hold" value="5" min="1" max="40" step="1"></div></div>
-          <div class="field"><label for="rentg">Croiss. loyers</label><div class="input-suffix"><span>%</span><input type="number" id="rentg" value="3" step="0.5"></div></div>
-          <div class="field"><label for="expg">Croiss. dépenses</label><div class="input-suffix"><span>%</span><input type="number" id="expg" value="2.5" step="0.5"></div></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label for="exitcap">Cap de sortie</label><div class="input-suffix"><span>%</span><input type="number" id="exitcap" placeholder="marché" min="0" step="0.1"></div><div class="hint">Vide = cap marché suggéré</div></div>
-          <div class="field"><label for="selling">Frais de vente</label><div class="input-suffix"><span>%</span><input type="number" id="selling" value="4" min="0" step="0.5"></div></div>
-        </div>
-
-        <div class="section-label">Objectif d'investissement</div>
-        <div class="field-row">
-          <div class="field"><label for="obj-irr">TRI cible</label><div class="input-suffix"><span>%</span><input type="number" id="obj-irr" value="12" min="0" step="0.5"></div></div>
-          <div class="field"><label for="obj-dscr">RCD minimal</label><input type="number" id="obj-dscr" value="1.20" min="0" step="0.05"></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label for="obj-coc">Rend. comptant min</label><div class="input-suffix"><span>%</span><input type="number" id="obj-coc" value="6" min="0" step="0.5"></div></div>
-          <div class="field"><label for="obj-em">Multiple d'équité min</label><input type="number" id="obj-em" value="1.8" min="0" step="0.1"></div>
-        </div>
-
       </div>
     </form>
 
@@ -205,6 +219,7 @@
           <span class="reco-sub">Recommandation d'acquisition</span>
         </div>
         <ul class="reco-reasons" id="reco-reasons"></ul>
+        <div class="reco-va" id="reco-va" hidden></div>
       </div>
 
       <div class="res-cols">
@@ -240,6 +255,18 @@
         </div>
       </div>
       </div>
+      </div>
+
+      <!-- Valorisation (value-add) -->
+      <div class="group" id="va-group" style="display:none;">
+        <h3>Valorisation <span id="va-badge" style="color:var(--ink-soft)"></span></h3>
+        <div class="metrics">
+          <div class="metric"><div class="m-label">Loyer actuel</div><div class="m-value sm mono" id="va-cur">—</div><div class="m-note">par mois</div></div>
+          <div class="metric"><div class="m-label">Loyer marché SCHL</div><div class="m-value sm mono" id="va-mkt">—</div><div class="m-note" id="va-gap">—</div></div>
+          <div class="metric"><div class="m-label">NOI stabilisé</div><div class="m-value sm mono" id="va-noi">—</div><div class="m-note" id="va-noilift">—</div></div>
+          <div class="metric"><div class="m-label">Upside de valeur</div><div class="m-value sm mono" id="va-upside">—</div><div class="m-note">au cap marché</div></div>
+        </div>
+        <div class="mp-note" id="va-verdict">—</div>
       </div>
 
       <!-- Financement -->
@@ -282,8 +309,8 @@
         <h3>Prix maximal pour atteindre les objectifs</h3>
         <div class="price-grid">
           <div class="price-cell"><span>Prix demandé</span><b class="mono" id="mp-asking">—</b></div>
-          <div class="price-cell hl"><span>Prix recommandé</span><b class="mono" id="mp-reco">—</b></div>
-          <div class="price-cell"><span>Prix maximal</span><b class="mono" id="mp-max">—</b></div>
+          <div class="price-cell hl"><span>Prix recommandé · TRI atteint</span><b class="mono" id="mp-reco">—</b></div>
+          <div class="price-cell"><span>Plafond finançable · RCD</span><b class="mono" id="mp-max">—</b></div>
           <div class="price-cell"><span>Écart vs demandé</span><b class="mono" id="mp-diff">—</b></div>
         </div>
         <div class="mp-note" id="mp-note">—</div>

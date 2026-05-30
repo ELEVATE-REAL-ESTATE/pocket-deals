@@ -54,6 +54,26 @@ export interface ExpenseInputs {
   misc: number;
 }
 
+/** Un type d'unité dans le mix locatif (nombre + loyer mensuel moyen actuel). */
+export interface UnitTypeMix {
+  count: number;
+  rent: number;
+}
+/** Mix locatif par type (studio / 3½=1 ch. / 4½=2 ch. / 5½+=3 ch.+). */
+export interface UnitMix {
+  studio?: UnitTypeMix;
+  br1?: UnitTypeMix;
+  br2?: UnitTypeMix;
+  br3?: UnitTypeMix;
+}
+/** Loyers de marché mensuels par type (depuis @elevate/config, par région). */
+export interface MarketRentSet {
+  studio: number | null;
+  br1: number | null;
+  br2: number | null;
+  br3: number | null;
+}
+
 /** Toutes les entrées nécessaires pour underwriter un deal. */
 export interface DealInputs {
   price: number;
@@ -68,6 +88,8 @@ export interface DealInputs {
   /** Inoccupation & mauvaises créances, en %. */
   vacancyPct: number;
   expenses: ExpenseInputs;
+  /** Mix locatif optionnel — active la comparaison aux loyers de marché (valorisation). */
+  unitMix?: UnitMix;
 
   program: FinancingProgram;
   /** Taux d'intérêt annuel, en % (ex. 5.25). */

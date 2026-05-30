@@ -8,6 +8,7 @@ import {
   rateTable,
   ratesFromDeltas,
   detectRedFlags,
+  valueAdd,
   DEFAULT_EXIT_CAPS,
   type DealInputs,
   type InvestmentObjectives,
@@ -142,10 +143,13 @@ describe("maxPurchasePrice — underwriting inversé (F2)", () => {
     expect(m.meetsAtAsking).toBe(false);
   });
 
-  it("le prix max est bien la frontière (passe au max, échoue au-dessus)", () => {
-    const m = maxPurchasePrice(deal(), { ...LENIENT, minDSCR: 1.45 });
-    expect(evaluate(underwrite(deal({ price: m.maxPrice })), { ...LENIENT, minDSCR: 1.45 }).verdict).toBe("BUY");
-    expect(evaluate(underwrite(deal({ price: m.maxPrice * 1.05 })), { ...LENIENT, minDSCR: 1.45 }).verdict).not.toBe("BUY");
+  it("le prix recommandé est la frontière TRI+RCD (passe au prix, échoue au-dessus)", () => {
+    const o = { ...LENIENT, minDSCR: 1.45 };
+    const m = maxPurchasePrice(deal(), o);
+    expect(evaluate(underwrite(deal({ price: m.recommendedPrice })), o).verdict).toBe("BUY");
+    expect(evaluate(underwrite(deal({ price: m.recommendedPrice * 1.05 })), o).verdict).not.toBe("BUY");
+    // le plafond finançable est ≥ le prix recommandé (TRI plus strict que RCD seul)
+    expect(m.maxPrice).toBeGreaterThanOrEqual(m.recommendedPrice - 1);
   });
 
   it("des objectifs plus stricts donnent un prix max plus bas (monotonie)", () => {
@@ -273,5 +277,42 @@ describe("recommend — décision complète (F1+F2+F9)", () => {
     const rank = { BUY: 2, RENEGOTIATE: 1, PASS: 0 };
     expect(rank[cheap]).toBeGreaterThanOrEqual(rank[dear]);
     expect(cheap).toBe("BUY"); // 1 M$ pour ce NOI = excellent
+  });
+});
+
+// =====================================================================
+// Valorisation — loyers actuels vs marché (value-add)
+// =====================================================================
+describe("valueAdd — potentiel de valorisation", () => {
+  const MIX = { br2: { count: 12, rent: 2000 } }; // 12 × 4½ @ 2000 $ = 24 000 $/mois
+  const MKT_BELOW = { studio: null, br1: null, br2: 2400, br3: null };
+  const MKT_AT = { studio: null, br1: null, br2: 2000, br3: null };
+
+  it("sans mix → pas de valorisation, stabilisé = actuel", () => {
+    const r = valueAdd(deal(), MKT_BELOW);
+    expect(r.hasMix).toBe(false);
+    expect(r.stabilized.noi).toBeCloseTo(r.current.noi, 6);
+    expect(r.isOpportunity).toBe(false);
+  });
+
+  it("loyers sous le marché → écart positif, NOI et valeur stabilisés plus élevés", () => {
+    const r = valueAdd(deal({ unitMix: MIX }), MKT_BELOW);
+    expect(r.hasMix).toBe(true);
+    expect(r.units).toBe(12);
+    expect(r.currentRentMonthly).toBe(24000);
+    expect(r.marketRentMonthly).toBe(28800);
+    expect(r.rentGapPct).toBeCloseTo(0.2, 4);
+    expect(r.isOpportunity).toBe(true);
+    expect(r.stabilized.noi).toBeGreaterThan(r.current.noi);
+    expect(r.upsideValue).toBeGreaterThan(0);
+    expect(r.noiLift).toBeCloseTo(r.stabilized.noi - r.current.noi, 6);
+  });
+
+  it("loyers déjà au marché → aucun upside, pas une occasion", () => {
+    const r = valueAdd(deal({ unitMix: MIX }), MKT_AT);
+    expect(r.rentGapPct).toBeCloseTo(0, 4);
+    expect(r.isOpportunity).toBe(false);
+    expect(r.upsideValue).toBeCloseTo(0, 0);
+    expect(r.stabilized.noi).toBeCloseTo(r.current.noi, 6);
   });
 });

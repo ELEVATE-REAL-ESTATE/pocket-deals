@@ -89,10 +89,12 @@ export function evaluate(result: UnderwritingResult, obj: InvestmentObjectives):
 
   const metCount = [irrOk, cocOk, emOk, cfOk].filter(Boolean).length;
 
+  // BUY = TRI cible + finançable (RCD) + flux positif. Le rendement comptant et
+  // le multiple sont INDICATIFS (affichés dans les raisons, mais ne bloquent pas).
   let verdict: Verdict;
   if (result.noi <= 0) {
     verdict = "PASS";
-  } else if (irrOk && dscrOk && cocOk && emOk && cfOk) {
+  } else if (irrOk && dscrOk && cfOk) {
     verdict = "BUY";
   } else {
     verdict = "RENEGOTIATE";

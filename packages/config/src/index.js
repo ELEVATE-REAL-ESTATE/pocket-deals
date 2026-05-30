@@ -1,3 +1,5 @@
+import { MARKET_RENTS } from "./market-rents.js";
+
 /* ============================================================================
    @elevate/config — DONNÉES DE MARCHÉ (source unique pour les apps bundlées)
    ----------------------------------------------------------------------------
@@ -104,5 +106,9 @@ export const MARKET_DATA = {
       "office": { label:"Bureau",                           spread:0.0200 },
       "senior": { label:"Résidence (RPA / étudiant)",       spread:0.0075 }
     }
-  }
+  },
+
+  /* -- Loyers de marché SCHL par région détaillée (135 zones) + bucket de cap.
+        Généré dans market-rents.js depuis l'Enquête sur les logements locatifs. */
+  marketRents: MARKET_RENTS
 };

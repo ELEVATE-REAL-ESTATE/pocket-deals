@@ -12,3 +12,4 @@ export * from "./solve.js";
 export * from "./sensitivity.js";
 export * from "./redflags.js";
 export * from "./recommend.js";
+export * from "./valueadd.js";

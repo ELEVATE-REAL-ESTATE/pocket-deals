@@ -34,8 +34,8 @@
 
 .section-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin: 26px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line-soft); display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .section-label:first-child { margin-top: 0; }
-.section-label button { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); border:1px solid var(--line); padding:4px 9px; background:var(--cream); }
-.section-label button:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.section-label button { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cream); border:1px solid var(--accent); padding:8px 16px; background:var(--accent); border-radius: 2px; }
+.section-label button:hover { background: var(--ink); border-color: var(--ink); }
 
 .field { margin-bottom: 16px; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -110,6 +110,15 @@ footer { border-top: 1px solid var(--line); padding: 30px 0; }
 footer .container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
 .foot-note { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--muted); }
 
+/* ---- Mix locatif (valorisation) ---- */
+.mix-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
+.mix-table th, .mix-table td { padding: 6px; text-align: right; border-bottom: 1px solid var(--line-soft); }
+.mix-table th:first-child, .mix-table td:first-child { text-align: left; font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); white-space: nowrap; }
+.mix-table thead th { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.mix-table input { width: 100%; background: var(--cream); border: 1px solid var(--line); padding: 6px 8px; font-family: var(--font-mono); font-size: 13px; text-align: right; }
+.mix-table input:focus { outline: none; border-color: var(--ink); background: #fff; }
+.mix-table td.mono { color: var(--accent); }
+
 /* ---- Recommandation d'acquisition (F1) ---- */
 .reco { border: 1px solid var(--line); background: var(--paper); padding: 22px 24px; }
 .reco-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
@@ -125,6 +134,13 @@ footer .container { display: flex; justify-content: space-between; align-items: 
 .reco-reasons li.no .ic { color: var(--danger); }
 .reco-reasons .rl { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); min-width: 138px; }
 .reco-reasons .rd { color: var(--muted); }
+.reco-va { margin-top: 16px; padding: 13px 15px; border-radius: 4px; background: rgba(212,175,110,0.14); border: 1px solid var(--gold); }
+.reco-va-head { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.reco-va-cmp { display: flex; align-items: center; gap: 10px; margin: 9px 0 7px; flex-wrap: wrap; }
+.reco-va-cmp .rv-now { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.reco-va-cmp .rv-arrow { color: var(--gold); font-weight: 600; }
+.reco-va-cmp .rv-opt { font-family: var(--font-mono); font-size: 13px; color: var(--ink); font-weight: 600; }
+.reco-va-cond { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
 
 /* ---- Prix maximal (F2) ---- */
 .price-grid { display: grid; grid-template-columns: 1fr 1fr; }

@@ -2,9 +2,11 @@ import "./styles.css";
 import {
   underwrite,
   recommend,
+  evaluate,
   exitCapTable,
   rateTable,
   ratesFromDeltas,
+  valueAdd,
   DEFAULT_EXIT_CAPS,
 } from "@elevate/domain";
 import { MARKET_DATA } from "@elevate/config";
@@ -21,7 +23,8 @@ const irrTxt = (v, dp=1) => v===null ? 'n/d' : !isFinite(v) ? '> 999 %' : pct(v,
 
 // ---- Données de marché — chargées depuis market-data.js (source unique) ----
 const MD = MARKET_DATA;
-const REGIONS = MD.capRates.regions;
+const CAP_BUCKETS = MD.capRates.regions;        // taux de cap par bucket (8)
+const RENT_REGIONS = MD.marketRents.regions;    // régions détaillées SCHL (135)
 const ASSETS  = MD.capRates.assetSpreads;
 const PROGRAMS = MD.programs.items;
 const CONSTRUCTION = MD.construction;
@@ -107,10 +110,17 @@ const setDot = (id,s) => $(id).className = 'dot '+s;
 function fillSelect(id, obj) {
   $(id).innerHTML = Object.entries(obj).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
 }
-fillSelect('region', REGIONS);
+// Sélecteur de région détaillé, groupé par métro (135 zones SCHL)
+function fillRegionSelect() {
+  const byGroup = {};
+  for (const [id, r] of Object.entries(RENT_REGIONS)) (byGroup[r.group] ||= []).push(`<option value="${id}">${r.label}</option>`);
+  $('region').innerHTML = MD.marketRents.groups.map(grp => `<optgroup label="${grp}">${(byGroup[grp] || []).join('')}</optgroup>`).join('');
+}
+fillRegionSelect();
 fillSelect('asset', ASSETS);
 fillSelect('program', PROGRAMS);
 fillSelect('construction', CONSTRUCTION);
+$('region').value = 'mtl-rmr';
 $('asset').value = 'multi';
 $('program').value = 'mli-std';
 $('construction').value = 'bois';
@@ -138,9 +148,19 @@ $('normalize').addEventListener('click', () => {
 ['construction','eq-appliances','eq-heatpump','eq-elevator'].forEach(id =>
   $(id).addEventListener('change', calc));
 
+// Cap marché dérivé de la région + actif (préremplit le champ, ajustable ensuite)
+function derivedCapMktPct() {
+  const region = RENT_REGIONS[$('region').value];
+  const bucket = CAP_BUCKETS[region.capBucket] || CAP_BUCKETS['mtl'];
+  const asset  = ASSETS[$('asset').value];
+  return (bucket.baseCap + asset.spread) * 100;
+}
+function syncCapMkt() { $('cap-mkt').value = derivedCapMktPct().toFixed(2); }
+
 // Adaptateur DOM → DealInputs (résout région+actif → cap marché, programme → params)
 function readDealInputs() {
-  const region = REGIONS[$('region').value];
+  const region = RENT_REGIONS[$('region').value];
+  const bucket = CAP_BUCKETS[region.capBucket] || CAP_BUCKETS['mtl'];
   const asset  = ASSETS[$('asset').value];
   const prog   = PROGRAMS[$('program').value];
   return {
@@ -152,13 +172,14 @@ function readDealInputs() {
       water: num('water'), repairs: num('repairs'), caretaking: num('caretaking'),
       mgmtPct: num('mgmt'), reservePerDoor: num('reserve'), misc: num('misc'),
     },
+    unitMix: readUnitMix(),
     program: { maxLTV: prog.maxLTV, minDCR: prog.minDCR, maxAmort: prog.maxAmort,
                insured: prog.insured, pointsEligible: prog.pointsEligible },
     rate: num('rate'), amort: num('amort'),
     premiumSchedule: MD.programs.premiumSchedule,
     mliPoints: num('mli-points'),
     premiumOverridePct: num('premium'), // 0/vide → prime calculée
-    capMktPct: (region.baseCap + asset.spread) * 100,
+    capMktPct: num('cap-mkt') > 0 ? num('cap-mkt') : (bucket.baseCap + asset.spread) * 100,
     hold: num('hold'), rentGrowthPct: num('rentg'), expenseGrowthPct: num('expg'),
     exitCapPct: num('exitcap'), sellingPct: num('selling'),
   };
@@ -303,6 +324,74 @@ function renderDecision(decision, input, obj) {
     '<span><i style="background:var(--accent)"></i>Prise de valeur</span>' +
     '<span><i style="background:var(--ink)"></i>TRI cumulé</span>' +
     '<span style="color:var(--muted)">— survol pour les chiffres</span>';
+
+  // Valorisation (value-add) — loyers vs marché SCHL de la région
+  const region = RENT_REGIONS[$('region').value];
+  renderValueAdd(valueAdd(input, region.rents), region.rents, obj, decision.recommendation.verdict);
+}
+
+// Mix locatif → DealInputs.unitMix
+function readUnitMix() {
+  const t = (n, r) => { const c = num(n); return c > 0 ? { count: c, rent: num(r) } : undefined; };
+  return {
+    studio: t('mix-studio-n', 'mix-studio-r'),
+    br1: t('mix-br1-n', 'mix-br1-r'),
+    br2: t('mix-br2-n', 'mix-br2-r'),
+    br3: t('mix-br3-n', 'mix-br3-r'),
+  };
+}
+
+// Valorisation : loyers marché par type + écart + stabilisé + upside
+function renderValueAdd(va, rents, obj, currentVerdict) {
+  const dash = v => (v == null ? '—' : fmt(v));
+  $('mkt-studio').textContent = dash(rents.studio);
+  $('mkt-br1').textContent = dash(rents.br1);
+  $('mkt-br2').textContent = dash(rents.br2);
+  $('mkt-br3').textContent = dash(rents.br3);
+
+  const grp = $('va-group');
+  if (!va.hasMix) { grp.style.display = 'none'; $('reco-va').hidden = true; return; }
+  grp.style.display = '';
+
+  const badge = $('va-badge');
+  if (va.isOpportunity) {
+    badge.textContent = `· Occasion de valorisation (+${pct(va.rentGapPct, 0)})`;
+    badge.style.color = 'var(--gold)';
+  } else if (va.rentGapPct > 0.01) {
+    badge.textContent = `· loyers ${pct(va.rentGapPct, 0)} sous le marché`;
+    badge.style.color = 'var(--ink-soft)';
+  } else {
+    badge.textContent = '· au marché';
+    badge.style.color = 'var(--muted)';
+  }
+
+  $('va-cur').textContent = compact(va.currentRentMonthly);
+  $('va-mkt').textContent = compact(va.marketRentMonthly);
+  $('va-gap').textContent = `écart ${(va.rentGapMonthly >= 0 ? '+' : '')}${compact(va.rentGapMonthly)}/mois`;
+  $('va-noi').textContent = compact(va.stabilized.noi);
+  $('va-noilift').textContent = `${va.noiLift >= 0 ? '+' : ''}${compact(va.noiLift)} vs actuel`;
+  $('va-upside').textContent = (va.upsideValue >= 0 ? '+' : '') + compact(va.upsideValue);
+
+  // Verdict AU LOYER DE MARCHÉ (stabilisé) — intègre l'upside à la décision
+  const fr = { BUY: 'ACHETER', RENEGOTIATE: 'RENÉGOCIER', PASS: 'PASSER' };
+  const stabV = evaluate(va.stabilized, obj).verdict;
+  $('va-verdict').textContent = `Au loyer de marché, ce deal devient « ${fr[stabV]} » — c'est son potentiel après optimisation des loyers (verdict stabilisé).`;
+
+  // Conseil « acheter si optimisé » sous la recommandation — quand l'upside change le verdict
+  const rank = { PASS: 0, RENEGOTIATE: 1, BUY: 2 };
+  const rcReco = $('reco-va');
+  if (va.isOpportunity && rank[stabV] > rank[currentVerdict]) {
+    rcReco.hidden = false;
+    rcReco.innerHTML =
+      `<div class="reco-va-head">💡 Conseil — acheter si optimisé</div>` +
+      `<div class="reco-va-cmp"><span class="rv-now">En l'état · ${fr[currentVerdict]}</span>` +
+      `<span class="rv-arrow">→</span>` +
+      `<span class="rv-opt">Au loyer de marché · ${fr[stabV]}</span></div>` +
+      `<div class="reco-va-cond">Condition : porter les loyers de ${compact(va.currentRentMonthly)} à ${compact(va.marketRentMonthly)}/mois ` +
+      `(+${pct(va.rentGapPct, 0)}) → +${compact(va.noiLift)} de RBE, +${compact(va.upsideValue)} de valeur.</div>`;
+  } else {
+    rcReco.hidden = true;
+  }
 }
 
 // F1 — recommandation
@@ -322,15 +411,15 @@ function renderMaxPrice(mp) {
   $('mp-asking').textContent = compact(mp.askingPrice);
   $('mp-reco').textContent = mp.feasible ? compact(mp.recommendedPrice) : '—';
   $('mp-max').textContent = mp.feasible ? compact(mp.maxPrice) : '—';
-  const diff = mp.maxPrice - mp.askingPrice;
+  const diff = mp.recommendedPrice - mp.askingPrice; // écart au prix recommandé (TRI)
   $('mp-diff').textContent = mp.feasible ? (diff >= 0 ? '+' : '') + compact(diff) : '—';
   let note;
   if (!mp.feasible) {
-    note = "Aucun prix n'atteint les objectifs — revoir les hypothèses ou assouplir les cibles.";
+    note = "Aucun prix n'atteint les objectifs — revoir les hypothèses ou les cibles.";
   } else if (mp.meetsAtAsking) {
-    note = `Le deal atteint les objectifs au prix demandé. Marge de sécurité ${pct(mp.marginOfSafety, 0)} sous le plafond — fourchette de négociation ${compact(mp.negotiationRange.low)} à ${compact(mp.negotiationRange.high)}.`;
+    note = `Au prix demandé, ton TRI cible est atteint avec ${pct(mp.marginOfSafety, 0)} de marge. Prix recommandé (TRI atteint) ${compact(mp.recommendedPrice)} · plafond finançable au RCD ${compact(mp.maxPrice)}.`;
   } else {
-    note = `Rabais requis ${pct(mp.discountPct, 0)} (${compact(mp.discountNeeded)}) pour atteindre les objectifs. Offre suggérée autour de ${compact(mp.recommendedPrice)}.`;
+    note = `Pour atteindre ton TRI cible, viser ≤ ${compact(mp.recommendedPrice)} (rabais ${pct(mp.discountPct, 0)}). Plafond finançable au RCD : ${compact(mp.maxPrice)}.`;
   }
   $('mp-note').textContent = note;
 }
@@ -402,11 +491,12 @@ $('refresh-btn').addEventListener('click', async () => {
 });
 
 $('form').addEventListener('input', calc);
-$('region').addEventListener('change', calc);
-$('asset').addEventListener('change', calc);
+$('region').addEventListener('change', () => { syncCapMkt(); calc(); });
+$('asset').addEventListener('change', () => { syncCapMkt(); calc(); });
 
 (async function init() {
   renderFreshness();
+  syncCapMkt();
   calc();
   await Promise.all([refreshRates(), refreshCMB()]); // BdC (directeur/prime/oblig) + CMB exact
   applySuggestedRate();    // ajuste le taux hypothécaire suggéré

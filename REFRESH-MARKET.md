@@ -35,15 +35,26 @@ Cette procédure est conçue pour être exécutée :
 
 Pour chaque bloc : consulter la/les source(s), extraire les chiffres, mettre à jour le bloc, bumper `asOf`.
 
-### 1. `capRates` — taux de capitalisation par région & actif
+### 1. `capRates` — taux de capitalisation par région & actif (buckets)
 - **Sources** :
   - Colliers — *Canada Cap Rate Report* (trimestriel) : https://www.collierscanada.com/en-ca/research
   - CBRE — *Canadian Cap Rates & Market Reports* : https://www.cbre.ca/insights/canadian-market-reports
   - Cushman & Wakefield — *Canadian Cap Rates Report* : https://www.cushmanwakefield.com/en/canada/insights/canadian-cap-rates-perspective-report
-- **Extraire** : fourchettes de cap rate multilogement (haut/bas de gamme) pour Montréal, Québec, Gatineau, etc.
-  Mettre à jour `regions[*].baseCap` (cap multilogement de référence) et, au besoin, `assetSpreads[*].spread`
-  (écart bureau/commercial/industriel vs multilogement).
-- **Cadence** : **trimestrielle** (les rapports sortent par trimestre).
+- **Extraire** : fourchettes de cap rate multilogement **par métro/région** — Montréal (prime/général/secondaire),
+  banlieue, Québec, Gatineau, Sherbrooke/Trois-Rivières, régions. Affiner `regions[*].baseCap` au plus précis
+  disponible par marché (les cap rates ne sont pas publiés par zone SCHL → on garde des **buckets par métro**,
+  rattachés aux zones via `marketRents[*].capBucket`). Mettre à jour aussi `assetSpreads[*].spread` au besoin.
+- **Cadence** : **trimestrielle**.
+
+### 1b. `marketRents` — loyers de marché SCHL par zone détaillée (`market-rents.js`)
+- **Source** : SCHL — *Enquête sur les logements locatifs (RMS)*, **Tableau 1.1.2** (loyer moyen par zone et nombre
+  de chambres), fichiers Excel par RMR : https://www.cmhc-schl.gc.ca/professionals/housing-markets-data-and-research/housing-data/data-tables/rental-market/rental-market-report-data-tables
+- **Procédure** : pour chaque RMR/centre du Québec, télécharger le `.xlsx`, ouvrir la feuille **« Tableau 1.1.2 »**,
+  lire par ligne (zone) les colonnes **Oct. (année courante)** pour Studio / 1 ch. / 2 ch. / 3 ch.+, et
+  **régénérer `packages/config/src/market-rents.js`** (mêmes ids de région, mêmes `group`/`capBucket`). Un parseur
+  Excel suffit (ex. `openpyxl` en Python, ou un lecteur xlsx). Bumper `marketRents.asOf`.
+- **Cadence** : **annuelle** — la SCHL publie l'ELL d'octobre vers **janvier-février**. Vérifier en début d'année
+  s'il existe un millésime plus récent que `marketRents.asOf` ; sinon ne rien changer.
 
 ### 2. `programs` — paramètres SCHL / conventionnel (RPV, RCD, amortissement, prime)
 - **Sources** :

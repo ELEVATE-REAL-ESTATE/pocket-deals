@@ -39,20 +39,20 @@ export function recommend(inputs: DealInputs, obj: InvestmentObjectives): DealDe
       reasons.push({
         ok: false,
         label: "Prix",
-        detail: `rabais requis ${(maxPrice.discountPct * 100).toFixed(0)} % — peu réaliste (max ${money(maxPrice.maxPrice)})`,
+        detail: `rabais requis ${(maxPrice.discountPct * 100).toFixed(0)} % — peu réaliste (TRI cible atteint sous ${money(maxPrice.recommendedPrice)})`,
       });
     } else {
       reasons.push({
         ok: false,
         label: "Prix",
-        detail: `atteint les objectifs sous ${money(maxPrice.maxPrice)} (rabais ${(maxPrice.discountPct * 100).toFixed(0)} %)`,
+        detail: `atteint le TRI cible sous ${money(maxPrice.recommendedPrice)} (rabais ${(maxPrice.discountPct * 100).toFixed(0)} %)`,
       });
     }
   } else if (verdict === "BUY" && maxPrice.marginOfSafety > 0) {
     reasons.push({
       ok: true,
       label: "Marge",
-      detail: `prix max ${money(maxPrice.maxPrice)} — marge ${(maxPrice.marginOfSafety * 100).toFixed(0)} % sous le plafond`,
+      detail: `prix recommandé ${money(maxPrice.recommendedPrice)} — ${(maxPrice.marginOfSafety * 100).toFixed(0)} % de marge avant de manquer le TRI`,
     });
   }
 
