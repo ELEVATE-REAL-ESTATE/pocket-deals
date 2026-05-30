@@ -11,6 +11,7 @@ import {
 } from "@elevate/domain";
 import { MARKET_DATA } from "@elevate/config";
 import { renderEquityChart } from "./chart.js";
+import { exportExcel, exportMemo, exportOffer } from "./export.js";
 
 const $ = id => document.getElementById(id);
 const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
@@ -327,7 +328,32 @@ function renderDecision(decision, input, obj) {
 
   // Valorisation (value-add) — loyers vs marché SCHL de la région
   const region = RENT_REGIONS[$('region').value];
-  renderValueAdd(valueAdd(input, region.rents), region.rents, obj, decision.recommendation.verdict);
+  const va = valueAdd(input, region.rents);
+  renderValueAdd(va, region.rents, obj, decision.recommendation.verdict);
+
+  // État courant pour l'export de documents (Slice C)
+  LAST = buildExportState(decision, input, obj, region, va);
+}
+
+// Snapshot complet de l'analyse courante, consommé par les exports (Excel / DOCX)
+let LAST = null;
+function buildExportState(decision, input, obj, region, va) {
+  return {
+    input, obj, decision, va,
+    rents: region.rents, region,
+    sensCap: exitCapTable(input, DEFAULT_EXIT_CAPS),
+    sensRate: rateTable(input, ratesFromDeltas(num('rate'))),
+    stabilizedVerdict: evaluate(va.stabilized, obj).verdict,
+    meta: {
+      address: $('address').value.trim(),
+      regionLabel: region.label,
+      assetLabel: (ASSETS[$('asset').value] || {}).label || '',
+      programLabel: (PROGRAMS[$('program').value] || {}).label || '',
+      constructionLabel: (CONSTRUCTION[$('construction').value] || {}).label || '',
+      year: num('year'),
+      generatedAt: new Date(),
+    },
+  };
 }
 
 // Mix locatif → DealInputs.unitMix
@@ -493,6 +519,21 @@ $('refresh-btn').addEventListener('click', async () => {
 $('form').addEventListener('input', calc);
 $('region').addEventListener('change', () => { syncCapMkt(); calc(); });
 $('asset').addEventListener('change', () => { syncCapMkt(); calc(); });
+
+// ---- Export de documents (Slice C) ----
+function withExport(label, fn) {
+  return async () => {
+    if (!LAST) return;
+    const st = $('export-status');
+    st.textContent = `${label} — génération…`;
+    try { await fn(LAST); st.textContent = `${label} — téléchargé ✓`; }
+    catch (e) { console.error(e); st.textContent = `${label} — erreur, réessaie`; }
+    setTimeout(() => { if (st.textContent.includes('✓')) st.textContent = ''; }, 4000);
+  };
+}
+$('exp-xlsx').addEventListener('click', withExport('Excel', exportExcel));
+$('exp-memo').addEventListener('click', withExport('Mémo', exportMemo));
+$('exp-offer').addEventListener('click', withExport('Promesse', exportOffer));
 
 (async function init() {
   renderFreshness();

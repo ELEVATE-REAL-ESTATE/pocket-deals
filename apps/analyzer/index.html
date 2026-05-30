@@ -70,6 +70,11 @@
         </div>
 
         <div class="section-label">Immeuble</div>
+        <div class="field">
+          <label for="address">Adresse de l'immeuble</label>
+          <input type="text" id="address" placeholder="123 rue Exemple, Montréal (Qc)" autocomplete="off">
+          <div class="hint">Apparaît sur les documents exportés</div>
+        </div>
         <div class="field-row">
           <div class="field">
             <label for="region">Région / marché</label>
@@ -220,6 +225,15 @@
         </div>
         <ul class="reco-reasons" id="reco-reasons"></ul>
         <div class="reco-va" id="reco-va" hidden></div>
+      </div>
+
+      <!-- Documents (Slice C — F6 Excel / F7 Mémo / F10 Promesse) -->
+      <div class="export-bar">
+        <span class="export-label">Exporter</span>
+        <button type="button" id="exp-xlsx">⤓ Excel · 9 onglets</button>
+        <button type="button" id="exp-memo">⤓ Mémo d'investissement</button>
+        <button type="button" id="exp-offer">⤓ Promesse d'achat</button>
+        <span class="export-status" id="export-status"></span>
       </div>
 
       <div class="res-cols">

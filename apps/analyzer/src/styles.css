@@ -142,6 +142,12 @@ footer .container { display: flex; justify-content: space-between; align-items: 
 .reco-va-cmp .rv-opt { font-family: var(--font-mono); font-size: 13px; color: var(--ink); font-weight: 600; }
 .reco-va-cond { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
 
+.export-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding: 14px 16px; border: 1px solid var(--line); background: var(--paper); }
+.export-bar .export-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.export-bar button { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; color: var(--ink); border: 1px solid var(--line); padding: 9px 14px; background: var(--cream); border-radius: 2px; transition: background .12s, color .12s, border-color .12s; }
+.export-bar button:hover { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+.export-bar .export-status { font-family: var(--font-mono); font-size: 11px; color: var(--accent); margin-left: auto; }
+
 /* ---- Prix maximal (F2) ---- */
 .price-grid { display: grid; grid-template-columns: 1fr 1fr; }
 .price-cell { padding: 14px 22px; border-right: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
