@@ -14,9 +14,13 @@
 <header class="topbar">
   <div class="container topbar-inner">
     <div class="brand">Elevate<small>Analyseur de transactions</small></div>
-    <a class="eyebrow" href="../index.html">← Deal Room</a>
+    <div class="topbar-actions">
+      <button type="button" id="lang-toggle" class="lang-btn" title="Translate to English / Traduire en anglais" translate="no">EN</button>
+      <a class="eyebrow" href="../index.html">← Deal Room</a>
+    </div>
   </div>
 </header>
+<div id="google_translate_element" aria-hidden="true"></div>
 
 <section class="hero">
   <div class="container">
@@ -230,9 +234,9 @@
       <!-- Documents (Slice C — F6 Excel / F7 Mémo / F10 Promesse) -->
       <div class="export-bar">
         <span class="export-label">Exporter</span>
-        <button type="button" id="exp-xlsx">⤓ Excel · 9 onglets</button>
+        <button type="button" id="exp-xlsx">⤓ Télécharger pro forma</button>
         <button type="button" id="exp-memo">⤓ Mémo d'investissement</button>
-        <button type="button" id="exp-offer">⤓ Promesse d'achat</button>
+        <button type="button" id="exp-offer">⤓ Générer une promesse d'achat</button>
         <span class="export-status" id="export-status"></span>
       </div>
 
@@ -379,6 +383,108 @@
   </div>
 </footer>
 
+<!-- Questionnaire Promesse d'achat (Slice C) — modèle Québec complet -->
+<dialog id="offer-modal" class="modal">
+  <form id="offer-form" method="dialog">
+    <div class="modal-head">
+      <h3>Promesse d'achat — informations</h3>
+      <button type="button" class="modal-x" id="offer-cancel" aria-label="Fermer">✕</button>
+    </div>
+    <p class="modal-lede">Remplis les champs : ton document reprend ton modèle complet (16 articles + annexes) et se télécharge prêt à réviser. Montants, dates et délais sont pré-remplis depuis l'analyse — ajuste au besoin. Les champs laissés vides apparaissent en pointillés à compléter.</p>
+
+    <div class="modal-section">Dossier</div>
+    <div class="field-row">
+      <div class="field"><label for="of-city">Ville (« Fait à »)</label><input type="text" id="of-city" placeholder="Montréal"></div>
+      <div class="field"><label for="of-district">District judiciaire</label><input type="text" id="of-district" placeholder="Montréal"></div>
+    </div>
+
+    <div class="modal-section">Acheteur</div>
+    <div class="field-row">
+      <div class="field"><label for="of-buyer-name">Dénomination</label><input type="text" id="of-buyer-name" placeholder="Nom légal / société"></div>
+      <div class="field"><label for="of-buyer-rep">Représentant autorisé</label><input type="text" id="of-buyer-rep" placeholder="Nom du signataire"></div>
+    </div>
+    <div class="field"><label for="of-buyer-addr">Adresse</label><input type="text" id="of-buyer-addr"></div>
+    <div class="field-row">
+      <div class="field"><label for="of-buyer-phone">Téléphone</label><input type="text" id="of-buyer-phone"></div>
+      <div class="field"><label for="of-buyer-email">Courriel</label><input type="text" id="of-buyer-email"></div>
+    </div>
+    <div class="modal-checks">
+      <label><input type="checkbox" id="of-buyer-affiliate" checked> Inclure « ou toute autre entité associée ou liée qu'il désigne »</label>
+    </div>
+
+    <div class="modal-section">Vendeur</div>
+    <div class="field-row">
+      <div class="field"><label for="of-seller-name">Dénomination</label><input type="text" id="of-seller-name" placeholder="Nom légal / société"></div>
+      <div class="field"><label for="of-seller-rep">Représentant autorisé</label><input type="text" id="of-seller-rep" placeholder="Nom du signataire"></div>
+    </div>
+    <div class="field"><label for="of-seller-addr">Adresse</label><input type="text" id="of-seller-addr"></div>
+    <div class="field-row">
+      <div class="field"><label for="of-seller-phone">Téléphone</label><input type="text" id="of-seller-phone"></div>
+      <div class="field"><label for="of-seller-email">Courriel</label><input type="text" id="of-seller-email"></div>
+    </div>
+
+    <div class="modal-section">Immeuble</div>
+    <div class="field"><label for="of-prop-addr">Adresse de l'immeuble</label><input type="text" id="of-prop-addr"></div>
+    <div class="field-row-3">
+      <div class="field"><label for="of-lot">Cadastre (lot)</label><input type="text" id="of-lot"></div>
+      <div class="field"><label for="of-matricule">Matricule</label><input type="text" id="of-matricule"></div>
+      <div class="field"><label for="of-zonage">Zonage</label><input type="text" id="of-zonage"></div>
+    </div>
+
+    <div class="modal-section">Prix &amp; répartition</div>
+    <div class="field"><label for="of-price">Prix offert (modifiable)</label><div class="input-prefix"><span>$</span><input type="number" id="of-price" min="0" step="1000"></div><div class="hint">Pré-rempli au prix recommandé (TRI) — change-le pour fixer ton offre. Converti en lettres automatiquement.</div></div>
+    <div class="field-row-3">
+      <div class="field"><label for="of-alloc-land">Répartition — terrain</label><div class="input-prefix"><span>$</span><input type="number" id="of-alloc-land" min="0" step="1000" placeholder="optionnel"></div></div>
+      <div class="field"><label for="of-alloc-building">Bâtiment</label><div class="input-prefix"><span>$</span><input type="number" id="of-alloc-building" min="0" step="1000" placeholder="optionnel"></div></div>
+      <div class="field"><label for="of-alloc-chattels">Biens meubles</label><div class="input-prefix"><span>$</span><input type="number" id="of-alloc-chattels" min="0" step="500" placeholder="optionnel"></div></div>
+    </div>
+    <div class="field"><label for="of-warranty">Garantie légale</label><select id="of-warranty"><option value="sans">Vente sans garantie légale (aux risques de l'acheteur)</option><option value="avec">Vente avec garantie légale ordinaire</option></select></div>
+
+    <div class="modal-section">Conditions suspensives</div>
+    <div class="field-row-3">
+      <div class="field"><label for="of-dd-days">Vérification diligente (jours)</label><input type="number" id="of-dd-days" value="15" min="0" step="1"></div>
+      <div class="field"><label for="of-fin-days">Financement (jours)</label><input type="number" id="of-fin-days" value="75" min="0" step="1"></div>
+      <div class="field"><label for="of-fin-ext">Prolongation SCHL (jours)</label><input type="number" id="of-fin-ext" value="30" min="0" step="1"></div>
+    </div>
+    <div class="field-row-3">
+      <div class="field"><label for="of-deposit">Acompte</label><div class="input-prefix"><span>$</span><input type="number" id="of-deposit" min="0" step="500"></div><div class="hint">Défaut : 5 %</div></div>
+      <div class="field"><label for="of-deposit-days">Délai acompte (jours)</label><input type="number" id="of-deposit-days" value="5" min="0" step="1"></div>
+      <div class="field"><label for="of-docs-days">Docs vendeur (jours ouvr.)</label><input type="number" id="of-docs-days" value="5" min="0" step="1"></div>
+    </div>
+    <div class="field"><label for="of-notary">Notaire instrumentant</label><input type="text" id="of-notary" placeholder="Me ..."></div>
+    <div class="modal-checks">
+      <label><input type="checkbox" id="of-financing-enabled" checked> Inclure une condition de financement</label>
+      <label><input type="checkbox" id="of-deposit-enabled" checked> Inclure un acompte (après la vérification diligente)</label>
+      <label><input type="checkbox" id="of-internal"> Condition d'approbations internes (conseil / investisseurs)</label>
+    </div>
+
+    <div class="modal-section">Clôture &amp; dispositions</div>
+    <div class="field-row-3">
+      <div class="field"><label for="of-closing-days">Clôture (jours)</label><input type="number" id="of-closing-days" value="90" min="0" step="1"></div>
+      <div class="field"><label for="of-irrev">Irrévocabilité (jours)</label><input type="number" id="of-irrev" value="7" min="0" step="1"></div>
+      <div class="field"><label for="of-internal-days">Approb. internes (jours)</label><input type="number" id="of-internal-days" value="15" min="0" step="1"></div>
+    </div>
+
+    <div class="modal-section">Courtage</div>
+    <div class="field"><label for="of-brokerage">Courtier</label><select id="of-brokerage"><option value="none">Aucun courtier n'est intervenu</option><option value="yes">Un courtier est intervenu</option></select></div>
+    <div class="field-row">
+      <div class="field"><label for="of-broker-name">Nom du courtier</label><input type="text" id="of-broker-name" placeholder="si applicable"></div>
+      <div class="field"><label for="of-broker-charge">Rétribution à la charge de</label><input type="text" id="of-broker-charge" placeholder="Vendeur / Acheteur"></div>
+    </div>
+
+    <div class="modal-section">Annexe B — Inclusions / exclusions</div>
+    <div class="field"><label for="of-inclusions">Inclusions</label><textarea id="of-inclusions" rows="2" placeholder="Électroménagers, mobilier, équipements inclus..."></textarea></div>
+    <div class="field"><label for="of-exclusions">Exclusions</label><textarea id="of-exclusions" rows="2" placeholder="Biens exclus de la vente..."></textarea></div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-ghost" id="offer-cancel-2">Annuler</button>
+      <button type="button" class="btn-primary" id="offer-generate">⤓ Générer la promesse</button>
+    </div>
+  </form>
+</dialog>
+
+<script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'fr',includedLanguages:'en,fr',autoDisplay:false},'google_translate_element');}</script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

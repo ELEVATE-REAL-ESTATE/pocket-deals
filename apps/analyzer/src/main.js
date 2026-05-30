@@ -533,7 +533,61 @@ function withExport(label, fn) {
 }
 $('exp-xlsx').addEventListener('click', withExport('Excel', exportExcel));
 $('exp-memo').addEventListener('click', withExport('Mémo', exportMemo));
-$('exp-offer').addEventListener('click', withExport('Promesse', exportOffer));
+
+// Promesse d'achat → questionnaire pop-up qui auto-remplit le modèle complet
+function openOfferModal() {
+  if (!LAST) return;
+  const mp = LAST.decision.maxPrice;
+  const price = mp.feasible ? Math.round(mp.recommendedPrice) : LAST.input.price;
+  if (!$('of-prop-addr').value) $('of-prop-addr').value = LAST.meta.address || '';
+  if (!$('of-price').value) $('of-price').value = price;
+  if (!$('of-deposit').value) $('of-deposit').value = Math.round(price * 0.05);
+  $('offer-modal').showModal();
+}
+function readOfferForm() {
+  const val = id => $(id).value.trim();
+  const numv = id => { const n = parseFloat($(id).value); return isNaN(n) ? 0 : n; };
+  const chk = id => $(id).checked;
+  return {
+    city: val('of-city'), district: val('of-district'),
+    buyerName: val('of-buyer-name'), buyerRep: val('of-buyer-rep'), buyerAddress: val('of-buyer-addr'),
+    buyerPhone: val('of-buyer-phone'), buyerEmail: val('of-buyer-email'),
+    sellerName: val('of-seller-name'), sellerRep: val('of-seller-rep'), sellerAddress: val('of-seller-addr'),
+    sellerPhone: val('of-seller-phone'), sellerEmail: val('of-seller-email'),
+    propertyAddress: val('of-prop-addr'), lot: val('of-lot'), matricule: val('of-matricule'), zonage: val('of-zonage'),
+    offerPrice: numv('of-price'), allocLand: numv('of-alloc-land'), allocBuilding: numv('of-alloc-building'), allocChattels: numv('of-alloc-chattels'),
+    warranty: val('of-warranty'), buyerAffiliate: chk('of-buyer-affiliate'),
+    ddDays: numv('of-dd-days'), finDays: numv('of-fin-days'), finExtDays: numv('of-fin-ext'),
+    financingEnabled: chk('of-financing-enabled'), depositEnabled: chk('of-deposit-enabled'),
+    deposit: numv('of-deposit'), depositDays: numv('of-deposit-days'), vendorDocsDays: numv('of-docs-days'), notary: val('of-notary'),
+    internalApprovals: chk('of-internal'), internalDays: numv('of-internal-days'),
+    closingDays: numv('of-closing-days'), irrevocableDays: numv('of-irrev'),
+    brokerage: val('of-brokerage'), brokerName: val('of-broker-name'), brokerCharge: val('of-broker-charge'),
+    inclusions: val('of-inclusions'), exclusions: val('of-exclusions'),
+  };
+}
+$('exp-offer').addEventListener('click', openOfferModal);
+$('offer-cancel').addEventListener('click', () => $('offer-modal').close());
+$('offer-cancel-2').addEventListener('click', () => $('offer-modal').close());
+$('offer-generate').addEventListener('click', async () => {
+  const st = $('export-status'); st.textContent = 'Promesse — génération…';
+  try { await exportOffer(LAST, readOfferForm()); $('offer-modal').close(); st.textContent = 'Promesse — téléchargée ✓'; }
+  catch (e) { console.error(e); st.textContent = 'Promesse — erreur, réessaie'; }
+  setTimeout(() => { if (st.textContent.includes('✓')) st.textContent = ''; }, 4000);
+});
+
+// ---- Bascule de langue FR ⇄ EN (Google Website Translator) ----
+let currentLang = 'fr';
+function applyLang(lang, attempts = 25) {
+  const sel = document.querySelector('select.goog-te-combo');
+  if (sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); return; }
+  if (attempts > 0) setTimeout(() => applyLang(lang, attempts - 1), 250);
+}
+$('lang-toggle').addEventListener('click', () => {
+  currentLang = currentLang === 'fr' ? 'en' : 'fr';
+  applyLang(currentLang);
+  $('lang-toggle').textContent = currentLang === 'fr' ? 'EN' : 'FR';
+});
 
 (async function init() {
   renderFreshness();
