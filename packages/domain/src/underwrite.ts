@@ -106,6 +106,8 @@ export function underwrite(input: DealInputs): UnderwritingResult {
   // --- Pro forma sur la période de détention + revente ---
   const proforma: ProformaRow[] = [];
   const flows: number[] = [-equityInvested];
+  const annualCfs: number[] = [];
+  let cumulative = 0;
   let netSaleProceeds = 0;
 
   for (let y = 1; y <= hold; y++) {
@@ -114,15 +116,35 @@ export function underwrite(input: DealInputs): UnderwritingResult {
     const yNoi = rev - exp;
     const yCf = yNoi - annualDebtService;
     const bal = remainingBalance(financedLoan, rate, amort, y * 12);
+    annualCfs.push(yCf);
+    cumulative += yCf;
+
+    // Valeur fin d'année = NOI prospectif (année y+1) capitalisé au cap de sortie
+    const fwdNoi = egi * Math.pow(1 + rentG, y) - opex * Math.pow(1 + expG, y);
+    const propertyValue = exitCap > 0 ? fwdNoi / exitCap : 0;
+    const equityY = propertyValue - bal;
+    const saleY = propertyValue * (1 - selling) - bal;
+
+    // TRI si l'immeuble était revendu à la fin de l'année y
+    const periodIRR = irr([-equityInvested, ...annualCfs.slice(0, y - 1), yCf + saleY]);
+
+    proforma.push({
+      year: y,
+      noi: yNoi,
+      debtService: annualDebtService,
+      cashFlow: yCf,
+      loanBalance: bal,
+      propertyValue,
+      equity: equityY,
+      cumulativeCashFlow: cumulative,
+      periodIRR,
+    });
 
     let flow = yCf;
     if (y === hold) {
-      const fwdNoi = egi * Math.pow(1 + rentG, y) - opex * Math.pow(1 + expG, y);
-      const grossSale = exitCap > 0 ? fwdNoi / exitCap : 0;
-      netSaleProceeds = grossSale * (1 - selling) - bal;
+      netSaleProceeds = saleY; // = valeur capitalisée × (1 − frais) − solde
       flow += netSaleProceeds;
     }
-    proforma.push({ year: y, noi: yNoi, debtService: annualDebtService, cashFlow: yCf, loanBalance: bal });
     flows.push(flow);
   }
 

@@ -103,6 +103,14 @@ export interface ProformaRow {
   debtService: number;
   cashFlow: number;
   loanBalance: number;
+  /** Valeur de l'immeuble en fin d'année = NOI prospectif (année +1) ÷ cap de sortie. */
+  propertyValue: number;
+  /** Équité = valeur − solde du prêt. */
+  equity: number;
+  /** Flux d'exploitation cumulés (hors revente). */
+  cumulativeCashFlow: number;
+  /** TRI si l'immeuble était revendu à la fin de cette année (null si non calculable). */
+  periodIRR: number | null;
 }
 
 /** Résultat complet de l'underwriting. */
