@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+.next/
+out/
+.turbo/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs / OS
+*.log
+.DS_Store
+Thumbs.db
