@@ -85,16 +85,19 @@ describe("primitives financières", () => {
   });
 });
 
-describe("barèmes SCHL", () => {
-  it("conciergerie par palier d'unités", () => {
-    expect(schlConciergePerDoor(12)).toBe(365);
-    expect(schlConciergePerDoor(8)).toBe(330);
+describe("barèmes SCHL (norme 2026-06)", () => {
+  it("conciergerie par construction et palier d'unités", () => {
+    expect(schlConciergePerDoor(12, "bois")).toBe(400);
+    expect(schlConciergePerDoor(8, "bois")).toBe(250);
+    expect(schlConciergePerDoor(8, "beton")).toBe(670);
   });
-  it("réserve : structure + composantes présentes", () => {
-    expect(schlReservePerDoor({ units: 12, construction: "beton" })).toBe(300);
+  it("réserve : composantes présentes uniquement (aucune base structurale)", () => {
+    expect(schlReservePerDoor({ units: 12, construction: "beton" })).toBe(0);
     expect(
       schlReservePerDoor({ units: 12, construction: "bois", hasAppliances: true, hasHeatPump: true }),
-    ).toBe(450 + 110 + 250);
+    ).toBe(60 + 190);
+    // ascenseur : 315 $/mois × 12 ÷ 12 portes = 315 $/porte
+    expect(schlReservePerDoor({ units: 12, hasElevator: true })).toBe(315);
   });
 });
 

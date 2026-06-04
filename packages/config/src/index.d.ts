@@ -77,12 +77,15 @@ export interface MarketData {
   schlExpenses: {
     asOf: string;
     source: string;
-    repairsPerDoor: number;
-    conciergePerDoor: { ge12: number; lt12: number };
+    byConstruction: Record<"bois" | "beton", {
+      repairsPerDoor: number;
+      salaryPerDoor: { lt12: number; ge12: number };
+      mgmtPct: { lt12: number; ge12: number };
+    }>;
     mgmtPct: number;
     vacancyFloor: number;
-    reserveStructPerDoor: { bois: number; beton: number };
-    reserveComponents: { appliances: number; heatpump: number; elevatorBuilding: number };
+    reserveComponents: { appliances: number; heatpump: number; elevatorPerMonth: number };
+    otherCostsPct: number;
   };
   construction: Record<string, { label: string }>;
   capRates: {

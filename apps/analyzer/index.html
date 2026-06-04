@@ -53,25 +53,21 @@
         <div class="section-label">Objectif d'investissement</div>
         <div class="hint" style="margin:-6px 0 12px;">Définis tes cibles d'abord — la recommandation et le prix maximal en découlent.</div>
         <div class="field-row">
-          <div class="field"><label for="obj-irr">TRI cible</label><div class="input-suffix"><span>%</span><input type="number" id="obj-irr" value="12" min="0" step="0.5"></div></div>
-          <div class="field"><label for="obj-dscr">RCD minimal</label><input type="number" id="obj-dscr" value="1.20" min="0" step="0.05"></div>
+          <div class="field"><label for="obj-irr"><span class="term" data-tip="Taux de rendement interne visé : le rendement annualisé minimal exigé, qui tient compte des flux ET de la revente dans le temps.">TRI cible</span></label><div class="input-suffix"><span>%</span><input type="number" id="obj-irr" placeholder="12" min="0" step="0.5"></div></div>
+          <div class="field"><label for="obj-dscr"><span class="term" data-tip="Ratio de couverture de dette plancher : RBE ÷ service de dette. Sous ce seuil, le revenu ne couvre pas assez la dette (les prêteurs SCHL exigent souvent 1,10–1,30).">RCD minimal</span></label><input type="number" id="obj-dscr" placeholder="1.20" min="0" step="0.05"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label for="obj-coc">Rend. comptant min</label><div class="input-suffix"><span>%</span><input type="number" id="obj-coc" value="6" min="0" step="0.5"></div></div>
-          <div class="field"><label for="obj-em">Multiple d'équité min</label><input type="number" id="obj-em" value="1.8" min="0" step="0.1"></div>
+          <div class="field"><label for="obj-coc"><span class="term" data-tip="Rendement comptant (cash-on-cash) minimal : flux de trésorerie de l'an 1 ÷ mise de fonds. Le rendement liquide minimal exigé sur ton capital.">Rend. comptant min</span></label><div class="input-suffix"><span>%</span><input type="number" id="obj-coc" placeholder="6" min="0" step="0.5"></div></div>
+          <div class="field"><label for="obj-em"><span class="term" data-tip="Multiple d'équité plancher : combien de fois tu veux au minimum récupérer ta mise sur la durée — (flux cumulés + revente nette) ÷ équité investie.">Multiple d'équité min</span></label><input type="number" id="obj-em" placeholder="1.8" min="0" step="0.1"></div>
         </div>
 
         <div class="section-label">Croissance & revente</div>
         <div class="field-row-3">
-          <div class="field"><label for="hold">Détention</label><div class="input-suffix"><span>ans</span><input type="number" id="hold" value="5" min="1" max="40" step="1"></div></div>
-          <div class="field"><label for="rentg">Croiss. loyers</label><div class="input-suffix"><span>%</span><input type="number" id="rentg" value="3" step="0.5"></div></div>
-          <div class="field"><label for="expg">Croiss. dépenses</label><div class="input-suffix"><span>%</span><input type="number" id="expg" value="2.5" step="0.5"></div></div>
+          <div class="field"><label for="hold">Détention</label><div class="input-suffix"><span>ans</span><input type="number" id="hold" placeholder="5" min="1" max="40" step="1"></div></div>
+          <div class="field"><label for="rentg">Croiss. loyers</label><div class="input-suffix"><span>%</span><input type="number" id="rentg" placeholder="3" step="0.5"></div></div>
+          <div class="field"><label for="expg">Croiss. dépenses</label><div class="input-suffix"><span>%</span><input type="number" id="expg" placeholder="2.5" step="0.5"></div></div>
         </div>
-        <div class="field-row-3">
-          <div class="field"><label for="cap-mkt">Cap marché</label><div class="input-suffix"><span>%</span><input type="number" id="cap-mkt" min="0" step="0.05"></div><div class="hint">Auto par région · ajustable</div></div>
-          <div class="field"><label for="exitcap">Cap de sortie</label><div class="input-suffix"><span>%</span><input type="number" id="exitcap" placeholder="marché" min="0" step="0.1"></div><div class="hint">Vide = cap marché</div></div>
-          <div class="field"><label for="selling">Frais de vente</label><div class="input-suffix"><span>%</span><input type="number" id="selling" value="4" min="0" step="0.5"></div></div>
-        </div>
+        <div class="field"><label for="selling"><span class="term" data-tip="Frais de vente à la revente (courtage, notaire, etc.), en % du prix de vente — réduisent le produit net de la revente.">Frais de vente</span></label><div class="input-suffix"><span>%</span><input type="number" id="selling" placeholder="4" min="0" step="0.5"></div></div>
 
         <div class="section-label">Immeuble</div>
         <div class="field">
@@ -89,18 +85,23 @@
             <select id="asset"></select>
           </div>
         </div>
+        <div class="cap-hint" id="region-cap">—</div>
+        <div class="field-row">
+          <div class="field"><label for="cap-mkt"><span class="term" data-tip="Taux de capitalisation de référence pour la région et le type d'actif sélectionnés. Sert à estimer la valeur de marché (RBE ÷ cap). Prérempli selon la région, ajustable.">Cap marché</span></label><div class="input-suffix"><span>%</span><input type="number" id="cap-mkt" min="0" step="0.05"></div><div class="hint">Auto par région · ajustable</div></div>
+          <div class="field"><label for="exitcap"><span class="term" data-tip="Taux de capitalisation utilisé pour estimer la valeur de revente en fin de détention. Vide = cap marché. Un cap de sortie plus élevé = revente moins chère (plus prudent).">Cap de sortie</span></label><div class="input-suffix"><span>%</span><input type="number" id="exitcap" placeholder="marché" min="0" step="0.1"></div><div class="hint">Vide = cap marché</div></div>
+        </div>
         <div class="field-row-3">
           <div class="field">
             <label for="year">Année construction</label>
-            <input type="number" id="year" value="1985" min="1850" max="2030" step="1">
+            <input type="number" id="year" placeholder="1985" min="1850" max="2030" step="1">
           </div>
           <div class="field">
             <label for="units">Nombre d'unités</label>
-            <input type="number" id="units" value="12" min="1" step="1">
+            <input type="number" id="units" placeholder="12" min="1" step="1">
           </div>
           <div class="field">
             <label for="sqft">Superficie</label>
-            <div class="input-suffix"><span>pi²</span><input type="number" id="sqft" value="11000" min="0" step="100"></div>
+            <div class="input-suffix"><span>pi²</span><input type="number" id="sqft" placeholder="11000" min="0" step="100"></div>
           </div>
         </div>
         <div class="field">
@@ -110,17 +111,17 @@
         </div>
         <div class="field">
           <label for="price">Prix d'achat</label>
-          <div class="input-prefix"><span>$</span><input type="number" id="price" value="2400000" min="0" step="1000"></div>
+          <div class="input-prefix"><span>$</span><input type="number" id="price" placeholder="2400000" min="0" step="1000"></div>
         </div>
         <div class="field-row">
           <div class="field">
             <label for="closing">Frais d'acquisition</label>
-            <div class="input-suffix"><span>%</span><input type="number" id="closing" value="2.5" min="0" step="0.1"></div>
+            <div class="input-suffix"><span>%</span><input type="number" id="closing" placeholder="2.5" min="0" step="0.1"></div>
             <div class="hint">Droits de mutation, notaire, inspection</div>
           </div>
           <div class="field">
             <label for="capex">Capex initial</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="capex" value="0" min="0" step="1000"></div>
+            <div class="input-prefix"><span>$</span><input type="number" id="capex" placeholder="0" min="0" step="1000"></div>
             <div class="hint">Travaux jour 1</div>
           </div>
         </div>
@@ -129,17 +130,17 @@
         <div class="field-row">
           <div class="field">
             <label for="revenue">Revenus de loyers (annuel)</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="revenue" value="288000" min="0" step="1000"></div>
+            <div class="input-prefix"><span>$</span><input type="number" id="revenue" placeholder="288000" min="0" step="1000"></div>
           </div>
           <div class="field">
             <label for="other">Autres revenus</label>
-            <div class="input-prefix"><span>$</span><input type="number" id="other" value="24000" min="0" step="500"></div>
+            <div class="input-prefix"><span>$</span><input type="number" id="other" placeholder="24000" min="0" step="500"></div>
             <div class="hint">Stationnement, buanderie, rangement</div>
           </div>
         </div>
         <div class="field">
           <label for="vacancy">Inoccupation & mauvaises créances</label>
-          <div class="input-suffix"><span>%</span><input type="number" id="vacancy" value="4" min="0" step="0.5"></div>
+          <div class="input-suffix"><span>%</span><input type="number" id="vacancy" placeholder="4" min="0" step="0.5"></div>
         </div>
 
         <div class="section-label">Mix locatif & marché</div>
@@ -158,16 +159,16 @@
           <button type="button" id="normalize" title="Appliquer les normes d'underwriting SCHL">Normaliser SCHL</button>
         </div>
         <div class="field-row">
-          <div class="field"><label for="taxes">Taxes (mun. + scolaire)</label><div class="input-prefix"><span>$</span><input type="number" id="taxes" value="34000" min="0" step="500"></div></div>
-          <div class="field"><label for="insurance">Assurances</label><div class="input-prefix"><span>$</span><input type="number" id="insurance" value="11000" min="0" step="250"></div></div>
+          <div class="field"><label for="taxes">Taxes (mun. + scolaire)</label><div class="input-prefix"><span>$</span><input type="number" id="taxes" placeholder="34000" min="0" step="500"></div></div>
+          <div class="field"><label for="insurance">Assurances</label><div class="input-prefix"><span>$</span><input type="number" id="insurance" placeholder="11000" min="0" step="250"></div></div>
         </div>
         <div class="field-row">
-          <div class="field"><label for="energy">Énergie (chauffage, électr. communs)</label><div class="input-prefix"><span>$</span><input type="number" id="energy" value="22000" min="0" step="500"></div></div>
-          <div class="field"><label for="water">Eau, déneigement, terrain</label><div class="input-prefix"><span>$</span><input type="number" id="water" value="9000" min="0" step="250"></div></div>
+          <div class="field"><label for="energy">Énergie (chauffage, électr. communs)</label><div class="input-prefix"><span>$</span><input type="number" id="energy" placeholder="22000" min="0" step="500"></div></div>
+          <div class="field"><label for="water">Eau, déneigement, terrain</label><div class="input-prefix"><span>$</span><input type="number" id="water" placeholder="9000" min="0" step="250"></div></div>
         </div>
         <div class="field-row">
-          <div class="field"><label for="repairs">Entretien & réparations</label><div class="input-prefix"><span>$</span><input type="number" id="repairs" value="18000" min="0" step="500"></div><div class="hint schl" id="h-repairs">—</div></div>
-          <div class="field"><label for="caretaking">Conciergerie</label><div class="input-prefix"><span>$</span><input type="number" id="caretaking" value="9000" min="0" step="500"></div><div class="hint schl" id="h-caretaking">—</div></div>
+          <div class="field"><label for="repairs">Entretien & réparations</label><div class="input-prefix"><span>$</span><input type="number" id="repairs" placeholder="18000" min="0" step="500"></div><div class="hint schl" id="h-repairs">—</div></div>
+          <div class="field"><label for="caretaking">Conciergerie</label><div class="input-prefix"><span>$</span><input type="number" id="caretaking" placeholder="9000" min="0" step="500"></div><div class="hint schl" id="h-caretaking">—</div></div>
         </div>
         <div class="sublabel">Réserve de remplacement — selon les biens & équipements présents</div>
         <div class="checks">
@@ -176,9 +177,9 @@
           <label><input type="checkbox" id="eq-elevator"> Ascenseur</label>
         </div>
         <div class="field-row-3">
-          <div class="field"><label for="mgmt">Gestion</label><div class="input-suffix"><span>% RBE</span><input type="number" id="mgmt" value="5" min="0" step="0.5"></div></div>
-          <div class="field"><label for="reserve">Réserve remplac.</label><div class="input-suffix"><span>$/porte</span><input type="number" id="reserve" value="300" min="0" step="50"></div><div class="hint schl" id="h-reserve">—</div></div>
-          <div class="field"><label for="misc">Prof. & divers</label><div class="input-prefix"><span>$</span><input type="number" id="misc" value="6000" min="0" step="250"></div></div>
+          <div class="field"><label for="mgmt">Gestion</label><div class="input-suffix"><span>% RBE</span><input type="number" id="mgmt" placeholder="5" min="0" step="0.5"></div><div class="hint schl" id="h-mgmt">—</div></div>
+          <div class="field"><label for="reserve">Réserve remplac.</label><div class="input-suffix"><span>$/porte</span><input type="number" id="reserve" placeholder="250" min="0" step="50"></div><div class="hint schl" id="h-reserve">—</div></div>
+          <div class="field"><label for="misc"><span class="term" data-tip="« Autres coûts » normalisés SCHL : publicité, permis, ordures, déneigement, frais professionnels, etc. La norme 2026 les fixe à 1 % du RBE.">Autres / divers</span></label><div class="input-prefix"><span>$</span><input type="number" id="misc" placeholder="6000" min="0" step="250"></div><div class="hint schl" id="h-misc">—</div></div>
         </div>
 
         <div class="section-label">Financement</div>
@@ -200,8 +201,8 @@
           </div>
         </div>
         <div class="field-row-3">
-          <div class="field"><label for="rate">Taux d'intérêt</label><div class="input-suffix"><span>%</span><input type="number" id="rate" value="5.25" min="0" step="0.05"></div><div class="hint schl" id="h-rate">—</div></div>
-          <div class="field"><label for="amort">Amortissement</label><div class="input-suffix"><span>ans</span><input type="number" id="amort" value="40" min="1" step="1"></div></div>
+          <div class="field"><label for="rate">Taux d'intérêt</label><div class="input-suffix"><span>%</span><input type="number" id="rate" placeholder="5.25" min="0" step="0.05"></div><div class="hint schl" id="h-rate">—</div></div>
+          <div class="field"><label for="amort">Amortissement</label><div class="input-suffix"><span>ans</span><input type="number" id="amort" placeholder="40" min="1" step="1"></div></div>
           <div class="field"><label for="premium">Prime (override)</label><div class="input-suffix"><span>%</span><input type="number" id="premium" placeholder="auto" min="0" step="0.1"></div><div class="hint schl" id="h-premium">—</div></div>
         </div>
 
@@ -211,7 +212,17 @@
     <!-- RÉSULTATS -->
     <div class="results">
 
-      <div class="headline">
+      <!-- Export — en haut, multi-formats (Slice C) -->
+      <div class="export-bar" id="export-bar">
+        <span class="export-label">Exporter</span>
+        <button type="button" id="exp-xlsx" class="term" data-tip="Classeur Excel (.xlsx) — 6 onglets : sommaire, revenus/dépenses, évaluation, pro forma, sensibilités, valorisation.">⤓ Pro forma (Excel)</button>
+        <button type="button" id="exp-memo" class="term" data-tip="Mémo d'investissement (.docx) — recommandation, sommaire financier, drapeaux rouges, pro forma.">⤓ Mémo (Word)</button>
+        <button type="button" id="exp-offer" class="term" data-tip="Promesse d'achat (.docx) — modèle Québec complet, auto-rempli via le questionnaire.">⤓ Promesse d'achat (Word)</button>
+        <button type="button" id="exp-drive" class="ghost" title="Bientôt — sauvegarde vers Google Drive">⤴ Drive…</button>
+        <span class="export-status" id="export-status"></span>
+      </div>
+
+      <div class="headline" id="headline">
         <div class="verdict-row">
           <span class="eyebrow" style="color:rgba(244,240,230,0.55)">Année 1 · avant impôt</span>
           <span class="verdict" id="verdict">—</span>
@@ -231,13 +242,24 @@
         <div class="reco-va" id="reco-va" hidden></div>
       </div>
 
-      <!-- Documents (Slice C — F6 Excel / F7 Mémo / F10 Promesse) -->
-      <div class="export-bar">
-        <span class="export-label">Exporter</span>
-        <button type="button" id="exp-xlsx">⤓ Télécharger pro forma</button>
-        <button type="button" id="exp-memo">⤓ Mémo d'investissement</button>
-        <button type="button" id="exp-offer">⤓ Générer une promesse d'achat</button>
-        <span class="export-status" id="export-status"></span>
+      <!-- Callouts clés : prix maximal + prêt retenu (gros, centraux) -->
+      <div class="callouts">
+        <div class="callout" id="co-price">
+          <div class="co-label term" data-tip="Prix le plus élevé auquel le deal atteint encore ton TRI cible (et le RCD minimal). Au-dessus, tu manques tes objectifs.">Prix maximal · TRI atteint</div>
+          <div class="co-value mono" id="co-reco-price">—</div>
+          <div class="co-note" id="co-reco-note">—</div>
+        </div>
+        <div class="callout" id="co-loan">
+          <div class="co-label term" data-tip="Montant que le prêteur accepte de financer = le moindre entre le prêt selon la valeur (RPV) et le prêt selon la couverture de dette (RCD). C'est ce qui fixe ta mise de fonds.">Prêt retenu · <span id="co-bind-lbl">—</span></div>
+          <div class="co-value mono" id="co-loan-val">—</div>
+          <div class="co-note" id="co-loan-note">—</div>
+        </div>
+      </div>
+
+      <!-- Drapeaux rouges (F9) — remontés et mis en évidence -->
+      <div class="group flags-group" id="flags-group">
+        <h3>⚑ Drapeaux rouges <span id="flags-count" class="flags-count">—</span></h3>
+        <div id="flags-list"></div>
       </div>
 
       <div class="res-cols">
@@ -249,8 +271,8 @@
         <div class="metrics">
           <div class="metric"><div class="m-label">Prix / porte</div><div class="m-value sm mono" id="m-door">—</div><div class="m-note" id="n-door">—</div></div>
           <div class="metric"><div class="m-label">Prix / pi²</div><div class="m-value sm mono" id="m-sqft">—</div><div class="m-note">superficie brute</div></div>
-          <div class="metric"><div class="m-label"><span class="dot" id="d-cap"></span>Cap rate réel</div><div class="m-value sm mono" id="m-cap">—</div><div class="m-note" id="n-cap">—</div></div>
-          <div class="metric"><div class="m-label">Cap marché suggéré</div><div class="m-value sm mono" id="m-capmkt">—</div><div class="m-note" id="n-capmkt">par région + actif</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-cap"></span><span class="term" data-tip="Taux de capitalisation réel = RBE (NOI) ÷ prix d'achat. Le rendement de l'immeuble sans levier. Plus haut = meilleur pour l'acheteur.">Cap rate réel</span></div><div class="m-value sm mono" id="m-cap">—</div><div class="m-note" id="n-cap">—</div></div>
+          <div class="metric"><div class="m-label"><span class="term" data-tip="Taux de capitalisation de référence pour ta région et ton type d'actif. Sert à estimer la valeur de marché de l'immeuble.">Cap marché suggéré</span></div><div class="m-value sm mono" id="m-capmkt">—</div><div class="m-note" id="n-capmkt">par région + actif</div></div>
           <div class="metric wide" style="border-top:1px solid var(--line-soft);"><div class="m-label">Valeur implicite au cap marché</div>
             <div style="display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap;">
               <div class="m-value sm mono" id="m-implied">—</div>
@@ -266,10 +288,10 @@
       <div class="group">
         <h3>Rendement</h3>
         <div class="metrics">
-          <div class="metric"><div class="m-label"><span class="dot" id="d-noi"></span>RBE (NOI)</div><div class="m-value mono" id="m-noi">—</div><div class="m-note" id="n-noi">—</div></div>
-          <div class="metric"><div class="m-label"><span class="dot" id="d-dscr"></span>RCD (DSCR)</div><div class="m-value mono" id="m-dscr">—</div><div class="m-note" id="n-dscr">RBE ÷ service dette</div></div>
-          <div class="metric"><div class="m-label"><span class="dot" id="d-coc"></span>Rend. comptant</div><div class="m-value mono" id="m-coc">—</div><div class="m-note">cash-on-cash an 1</div></div>
-          <div class="metric"><div class="m-label"><span class="dot" id="d-em"></span>Mult. d'équité</div><div class="m-value mono" id="m-em">—</div><div class="m-note"><span id="em-hold">5</span> ans · TRI <span id="m-irr" style="color:var(--ink-soft)">—</span></div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-noi"></span><span class="term" data-tip="Revenu net d'exploitation = revenus effectifs − dépenses d'exploitation. Le bénéfice de l'immeuble avant financement et impôt.">RBE (NOI)</span></div><div class="m-value mono" id="m-noi">—</div><div class="m-note" id="n-noi">—</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-dscr"></span><span class="term" data-tip="Ratio de couverture de dette = RBE ÷ service de dette annuel. ≥ 1 = le revenu couvre la dette. Les prêteurs SCHL exigent souvent 1,10 à 1,30.">RCD (DSCR)</span></div><div class="m-value mono" id="m-dscr">—</div><div class="m-note" id="n-dscr">RBE ÷ service dette</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-coc"></span><span class="term" data-tip="Cash-on-cash : flux de trésorerie de l'année 1 ÷ mise de fonds investie. Le rendement liquide sur ton capital.">Rend. comptant</span></div><div class="m-value mono" id="m-coc">—</div><div class="m-note">cash-on-cash an 1</div></div>
+          <div class="metric"><div class="m-label"><span class="dot" id="d-em"></span><span class="term" data-tip="Combien de fois tu récupères ta mise sur la durée : (flux cumulés + revente nette) ÷ équité investie. 2,0× = tu doubles ta mise.">Mult. d'équité</span></div><div class="m-value mono" id="m-em">—</div><div class="m-note"><span id="em-hold">5</span> ans · <span class="term" data-tip="Taux de rendement interne : le rendement annualisé qui tient compte des flux ET de la revente, dans le temps.">TRI</span> <span id="m-irr" style="color:var(--ink-soft)">—</span></div></div>
         </div>
       </div>
       </div>
@@ -359,12 +381,6 @@
         <div class="chart-legend" id="chart-legend"></div>
       </div>
 
-      <!-- Drapeaux rouges (F9) -->
-      <div class="group">
-        <h3>Drapeaux rouges · <span id="flags-count" style="color:var(--ink-soft)">—</span></h3>
-        <div id="flags-list"></div>
-      </div>
-
       <p class="disclaimer">
         Estimations de pré-sélection — ne constitue pas un conseil financier. Le RCD et le rendement comptant sont à l'année 1, avant impôt.
         Les <strong>taux de capitalisation suggérés</strong> sont des repères de marché Q4 2025 (Colliers, CBRE, Cushman &amp; Wakefield) par région et type d'actif — à valider avec un courtier.
@@ -442,14 +458,14 @@
 
     <div class="modal-section">Conditions suspensives</div>
     <div class="field-row-3">
-      <div class="field"><label for="of-dd-days">Vérification diligente (jours)</label><input type="number" id="of-dd-days" value="15" min="0" step="1"></div>
-      <div class="field"><label for="of-fin-days">Financement (jours)</label><input type="number" id="of-fin-days" value="75" min="0" step="1"></div>
-      <div class="field"><label for="of-fin-ext">Prolongation SCHL (jours)</label><input type="number" id="of-fin-ext" value="30" min="0" step="1"></div>
+      <div class="field"><label for="of-dd-days">Vérification diligente (jours)</label><input type="number" id="of-dd-days" placeholder="15" min="0" step="1"></div>
+      <div class="field"><label for="of-fin-days">Financement (jours)</label><input type="number" id="of-fin-days" placeholder="75" min="0" step="1"></div>
+      <div class="field"><label for="of-fin-ext">Prolongation SCHL (jours)</label><input type="number" id="of-fin-ext" placeholder="30" min="0" step="1"></div>
     </div>
     <div class="field-row-3">
       <div class="field"><label for="of-deposit">Acompte</label><div class="input-prefix"><span>$</span><input type="number" id="of-deposit" min="0" step="500"></div><div class="hint">Défaut : 5 %</div></div>
-      <div class="field"><label for="of-deposit-days">Délai acompte (jours)</label><input type="number" id="of-deposit-days" value="5" min="0" step="1"></div>
-      <div class="field"><label for="of-docs-days">Docs vendeur (jours ouvr.)</label><input type="number" id="of-docs-days" value="5" min="0" step="1"></div>
+      <div class="field"><label for="of-deposit-days">Délai acompte (jours)</label><input type="number" id="of-deposit-days" placeholder="5" min="0" step="1"></div>
+      <div class="field"><label for="of-docs-days">Docs vendeur (jours ouvr.)</label><input type="number" id="of-docs-days" placeholder="5" min="0" step="1"></div>
     </div>
     <div class="field"><label for="of-notary">Notaire instrumentant</label><input type="text" id="of-notary" placeholder="Me ..."></div>
     <div class="modal-checks">
@@ -460,9 +476,9 @@
 
     <div class="modal-section">Clôture &amp; dispositions</div>
     <div class="field-row-3">
-      <div class="field"><label for="of-closing-days">Clôture (jours)</label><input type="number" id="of-closing-days" value="90" min="0" step="1"></div>
-      <div class="field"><label for="of-irrev">Irrévocabilité (jours)</label><input type="number" id="of-irrev" value="7" min="0" step="1"></div>
-      <div class="field"><label for="of-internal-days">Approb. internes (jours)</label><input type="number" id="of-internal-days" value="15" min="0" step="1"></div>
+      <div class="field"><label for="of-closing-days">Clôture (jours)</label><input type="number" id="of-closing-days" placeholder="90" min="0" step="1"></div>
+      <div class="field"><label for="of-irrev">Irrévocabilité (jours)</label><input type="number" id="of-irrev" placeholder="7" min="0" step="1"></div>
+      <div class="field"><label for="of-internal-days">Approb. internes (jours)</label><input type="number" id="of-internal-days" placeholder="15" min="0" step="1"></div>
     </div>
 
     <div class="modal-section">Courtage</div>

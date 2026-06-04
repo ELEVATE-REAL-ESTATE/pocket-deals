@@ -70,9 +70,13 @@ Pour chaque bloc : consulter la/les source(s), extraire les chiffres, mettre à 
   - CORPIQ — actualités SCHL : https://www.corpiq.com/fr/nouvelles
   - SCHL — barèmes de dépenses d'opération / *Replacement Reserve Guide*
   - MREX — Revenu Net Normalisé (RNN) : https://mrex.co
-- **Extraire** : `repairsPerDoor`, `conciergePerDoor` (par palier d'unités), `mgmtPct`,
-  `reserveStructPerDoor` (bois/béton), `reserveComponents` (électros, thermopompe, ascenseur), `vacancyFloor`.
-- **Cadence** : **annuelle** (la SCHL révise les barèmes ~1×/an ; dernière connue : juin 2023).
+- **Extraire** (structure par construction depuis la MAJ 2026-06) :
+  - `byConstruction.{bois,beton}` : `repairsPerDoor` ($/porte/an), `salaryPerDoor.{lt12,ge12}` (conciergerie/salaire),
+    `mgmtPct.{lt12,ge12}` (% du RBE). Le bois se scinde à 12 logements ; le béton non.
+  - `reserveComponents` : `appliances`, `heatpump` ($/porte) et `elevatorPerMonth` ($/ascenseur/mois). Aucune base
+    structurale (la réserve = somme des composantes présentes).
+  - `otherCostsPct` : « Autres coûts » normalisés (% du RBE), `vacancyFloor`.
+- **Cadence** : **annuelle** (la SCHL révise les barèmes ~1×/an ; dernière MAJ officielle : **8 juin 2026**).
 
 ### 4. `rates.spreads` + `rates.cmbSpread` — écarts hypothécaires
 - **Sources** : courtiers hypothécaires commerciaux (taux affichés multi-résidentiel assuré vs conventionnel),
