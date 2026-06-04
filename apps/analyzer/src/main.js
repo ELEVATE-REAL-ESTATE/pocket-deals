@@ -14,7 +14,8 @@ import { renderEquityChart } from "./chart.js";
 import { exportExcel, exportMemo, exportOffer } from "./export.js";
 
 const $ = id => document.getElementById(id);
-const num = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+// Lit la valeur ; si le champ est vide, retombe sur le placeholder (chiffre gris d'exemple)
+const num = id => { const el = $(id); const raw = el.value !== '' ? el.value : (el.placeholder || ''); const v = parseFloat(raw); return isNaN(v) ? 0 : v; };
 
 const fmt = (v, dp=0) => (v<0?'-':'') + '$' + Math.abs(v).toLocaleString('fr-CA', {minimumFractionDigits:dp, maximumFractionDigits:dp});
 const pct = (v, dp=2) => (v*100).toLocaleString('fr-CA',{minimumFractionDigits:dp,maximumFractionDigits:dp}) + ' %';
@@ -31,16 +32,18 @@ const PROGRAMS = MD.programs.items;
 const CONSTRUCTION = MD.construction;
 const SX = MD.schlExpenses;
 
-const SCHL_REPAIRS_PER_DOOR = SX.repairsPerDoor;
-const schlConciergePerDoor = units => units >= 12 ? SX.conciergePerDoor.ge12 : SX.conciergePerDoor.lt12;
-const SCHL_MGMT_PCT = SX.mgmtPct;
-// Réserve de remplacement = structure (selon construction) + composantes présentes
+// Barèmes SCHL par construction (et taille pour le bois). MAJ officielle 2026-06-08.
+const schlConstr = () => ($('construction').value === 'beton' ? 'beton' : 'bois');
+const schlRepairsPerDoor = () => SX.byConstruction[schlConstr()].repairsPerDoor;
+const schlSalaryPerDoor  = units => { const s = SX.byConstruction[schlConstr()].salaryPerDoor; return units >= 12 ? s.ge12 : s.lt12; };
+const schlMgmtPct        = units => { const m = SX.byConstruction[schlConstr()].mgmtPct; return units >= 12 ? m.ge12 : m.lt12; };
+// Réserve de remplacement = somme des composantes présentes (aucune base structurale)
 function schlReservePerDoor() {
   const units = Math.max(1, num('units'));
-  let r = SX.reserveStructPerDoor[$('construction').value] || 0;
+  let r = 0;
   if ($('eq-appliances').checked) r += SX.reserveComponents.appliances;
   if ($('eq-heatpump').checked)   r += SX.reserveComponents.heatpump;
-  if ($('eq-elevator').checked)   r += Math.round(SX.reserveComponents.elevatorBuilding/units);
+  if ($('eq-elevator').checked)   r += Math.round(SX.reserveComponents.elevatorPerMonth * 12 / units);
   return r;
 }
 
@@ -139,11 +142,18 @@ $('mli-points').addEventListener('change', calc);
 // la construction et les équipements présents.
 $('normalize').addEventListener('click', () => {
   const units = Math.max(1, num('units'));
-  $('repairs').value    = units * SCHL_REPAIRS_PER_DOOR;
-  $('caretaking').value = units * schlConciergePerDoor(units);
-  $('mgmt').value       = SCHL_MGMT_PCT;
+  $('repairs').value    = units * schlRepairsPerDoor();
+  $('caretaking').value = units * schlSalaryPerDoor(units);
+  $('mgmt').value       = schlMgmtPct(units);
   $('reserve').value    = schlReservePerDoor();
-  if (num('vacancy') < SX.vacancyFloor*100) $('vacancy').value = SX.vacancyFloor*100; // plancher SCHL
+  const touched = ['repairs', 'caretaking', 'mgmt', 'reserve'];
+  if (num('vacancy') < SX.vacancyFloor*100) { $('vacancy').value = SX.vacancyFloor*100; touched.push('vacancy'); } // plancher SCHL
+  // « Autres coûts » normalisés : 1 % du RBE (norme 2026-06)
+  const rbe = (num('revenue') + num('other')) * (1 - num('vacancy') / 100);
+  $('misc').value = Math.round(SX.otherCostsPct / 100 * rbe);
+  touched.push('misc');
+  // Mise en évidence immédiate des champs corrigés
+  touched.forEach(id => { const el = $(id); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); });
   calc();
 });
 ['construction','eq-appliances','eq-heatpump','eq-elevator'].forEach(id =>
@@ -216,6 +226,7 @@ function calc() {
   if (noi>0 && dscr>=prog.minDCR && capRate>=capMkt && coc>=0.05) { v='go'; vt='Solide'; }
   else if (noi>0 && dscr>=prog.minDCR*0.97 && coc>0) { v='watch'; vt='Marginal'; }
   $('verdict').textContent = vt; $('verdict').className = 'verdict '+v;
+  $('headline').className = 'headline '+v;
 
   // Évaluation
   $('m-door').textContent = compact(price/units);
@@ -226,6 +237,8 @@ function calc() {
   setDot('d-cap', capRate>=capMkt ? 'good' : capRate>=capMkt-0.005 ? 'ok' : 'bad');
   $('m-capmkt').textContent = pct(capMkt);
   $('n-capmkt').textContent = `${pct(capMkt-0.005,2)}–${pct(capMkt+0.005,2)}`;
+  const _rg = RENT_REGIONS[$('region').value];
+  $('region-cap').textContent = `Cap marché ${pct(capMkt)}${_rg ? ' · ' + _rg.label : ''}`;
   $('m-implied').textContent = compact(impliedValue);
   const gap = impliedValue - price;
   $('n-implied').textContent = (gap>=0?'+':'') + compact(gap) + ` vs prix (${gap>=0?'sous':'sur'}-évalué)`;
@@ -256,6 +269,10 @@ function calc() {
   $('l-debt').textContent = fmt(annualDebt);
   $('l-dp').textContent = compact(equityIn);
   $('dp-lbl').textContent = `(${pct(downPctEff,0)} + frais)`;
+  // Callout « Prêt retenu » (item 7)
+  $('co-loan-val').textContent = compact(baseLoan);
+  $('co-bind-lbl').textContent = `plafonné par ${binding}`;
+  $('co-loan-note').textContent = `Mise de fonds ${compact(equityIn)} · ${pct(downPctEff,0)} du prix`;
 
   // Barres
   const dscrPctFill = Math.max(0, Math.min(1, (isFinite(dscr)?dscr:2)/2));
@@ -282,12 +299,15 @@ function calc() {
     <td colspan="3" style="text-align:right;color:var(--accent);">Produit net de revente</td>
     <td class="${saleProceeds>=0?'pos':'neg'}">${fmt(saleProceeds)}</td></tr>`;
 
-  // Repères de normalisation SCHL affichés en direct sous les champs
-  $('h-repairs').textContent = `SCHL · ${fmt(units*SCHL_REPAIRS_PER_DOOR)} (${SCHL_REPAIRS_PER_DOOR} $/porte)`;
-  const cpd = schlConciergePerDoor(units);
+  // Repères de normalisation SCHL affichés en direct sous les champs (MAJ 2026-06)
+  const rpdoor = schlRepairsPerDoor();
+  $('h-repairs').textContent = `SCHL · ${fmt(units*rpdoor)} (${rpdoor} $/porte)`;
+  const cpd = schlSalaryPerDoor(units);
   $('h-caretaking').textContent = `SCHL · ${fmt(units*cpd)} (${cpd} $/porte${units<12?', <12 log.':''})`;
   const rpd = schlReservePerDoor();
   $('h-reserve').textContent = `SCHL · ${rpd} $/porte`;
+  $('h-mgmt').textContent = `SCHL · ${schlMgmtPct(units).toLocaleString('fr-CA')} % du RBE`;
+  $('h-misc').textContent = `SCHL · ${SX.otherCostsPct} % du RBE (autres coûts)`;
   const sp = MD.rates.spreads[$('program').value];
   const baseLbl = sp && sp.base === 'cmb5yr' ? `CMB 5 ans ${pct(cmb5yr())}` : `oblig. 5 ans ${pct(RATES.goc5yr)}`;
   $('h-rate').textContent = `Suggéré ${pct(suggestedRate())} — ${baseLbl} + écart ${pct(sp ? sp.spread : 0)}`;
@@ -427,6 +447,7 @@ function renderReco(rec) {
   const badge = $('reco-badge');
   badge.className = 'reco-badge ' + cls;
   badge.textContent = label;
+  const panel = $('reco'); panel.classList.remove('buy', 'reno', 'pass'); panel.classList.add(cls);
   $('reco-reasons').innerHTML = rec.reasons.map(x =>
     `<li class="${x.ok ? 'ok' : 'no'}"><span class="ic">${x.ok ? '✓' : '✗'}</span>` +
     `<span class="rl">${x.label}</span><span class="rd">${x.detail}</span></li>`).join('');
@@ -448,6 +469,11 @@ function renderMaxPrice(mp) {
     note = `Pour atteindre ton TRI cible, viser ≤ ${compact(mp.recommendedPrice)} (rabais ${pct(mp.discountPct, 0)}). Plafond finançable au RCD : ${compact(mp.maxPrice)}.`;
   }
   $('mp-note').textContent = note;
+  // Callout « Prix maximal » en haut (item 8)
+  $('co-reco-price').textContent = mp.feasible ? compact(mp.recommendedPrice) : '—';
+  $('co-reco-note').textContent = mp.feasible
+    ? `Plafond finançable ${compact(mp.maxPrice)} · demandé ${compact(mp.askingPrice)}`
+    : "Aucun prix n'atteint tes objectifs";
 }
 
 // F3 — sensibilité au cap de sortie
@@ -483,6 +509,11 @@ function renderSensRate(input, obj) {
 // F9 — drapeaux rouges
 function renderFlags(flags) {
   $('flags-count').textContent = flags.length === 0 ? 'aucun' : `${flags.length} alerte${flags.length > 1 ? 's' : ''}`;
+  // Mise en évidence du groupe selon la sévérité (item 2)
+  const grp = $('flags-group');
+  grp.classList.remove('has-danger', 'has-warning');
+  if (flags.some(f => f.severity === 'danger')) grp.classList.add('has-danger');
+  else if (flags.length) grp.classList.add('has-warning');
   $('flags-list').innerHTML = flags.length === 0
     ? '<div class="flags-none">✓ Aucun drapeau rouge détecté.</div>'
     : flags.map(f =>
@@ -509,10 +540,16 @@ function renderFreshness() {
   $('foot-updated').textContent = `Données curées à jour au ${MD.meta.lastUpdated}`;
 }
 
+// Flash les chiffres de taux pour montrer l'actualisation en direct (item 1)
+function flashRates() {
+  ['r-policy', 'r-prime', 'r-goc', 'r-cmb'].forEach(id => {
+    const el = $(id); el.classList.remove('flash-rate'); void el.offsetWidth; el.classList.add('flash-rate');
+  });
+}
 $('refresh-btn').addEventListener('click', async () => {
   const btn = $('refresh-btn'); btn.disabled = true; btn.textContent = '…';
   await Promise.all([refreshRates(), refreshCMB()]);
-  applySuggestedRate(); renderFreshness(); calc();
+  applySuggestedRate(); renderFreshness(); calc(); flashRates();
   btn.disabled = false; btn.textContent = '↻';
 });
 
@@ -533,6 +570,11 @@ function withExport(label, fn) {
 }
 $('exp-xlsx').addEventListener('click', withExport('Excel', exportExcel));
 $('exp-memo').addEventListener('click', withExport('Mémo', exportMemo));
+$('exp-drive').addEventListener('click', () => {
+  const st = $('export-status');
+  st.textContent = 'Sauvegarde Drive — bientôt (nécessite la connexion Google)';
+  setTimeout(() => { st.textContent = ''; }, 4000);
+});
 
 // Promesse d'achat → questionnaire pop-up qui auto-remplit le modèle complet
 function openOfferModal() {

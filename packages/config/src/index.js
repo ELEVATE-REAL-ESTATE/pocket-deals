@@ -69,14 +69,20 @@ export const MARKET_DATA = {
   },
 
   schlExpenses: {
-    asOf: "2023-06",
-    source: "SCHL / CORPIQ — barèmes de dépenses normalisées (mise à jour juin 2023)",
-    repairsPerDoor: 610,
-    conciergePerDoor: { ge12: 365, lt12: 330 },
-    mgmtPct: 5,
+    asOf: "2026-06",
+    source: "SCHL — barèmes de dépenses normalisées (mise à jour officielle du 8 juin 2026)",
+    // PUPA = par porte par an ($/porte/an). Barèmes par type de construction
+    // (et par taille pour le bois : < 12 logements vs 12 et plus).
+    byConstruction: {
+      bois:  { repairsPerDoor: 700,  salaryPerDoor: { lt12: 250, ge12: 400 }, mgmtPct: { lt12: 4.5, ge12: 5 } },
+      beton: { repairsPerDoor: 1040, salaryPerDoor: { lt12: 670, ge12: 670 }, mgmtPct: { lt12: 5,   ge12: 5 } }
+    },
+    mgmtPct: 5,             // repli générique (% du RBE)
     vacancyFloor: 0.03,
-    reserveStructPerDoor: { bois: 450, beton: 300 },
-    reserveComponents: { appliances: 110, heatpump: 250, elevatorBuilding: 2500 }
+    // Réserve de remplacement = somme des composantes présentes (aucune base structurale).
+    // électro & thermopompe en $/porte ; ascenseur en $/ascenseur/mois (réparti sur les portes).
+    reserveComponents: { appliances: 60, heatpump: 190, elevatorPerMonth: 315 },
+    otherCostsPct: 1       // « Autres coûts » (publicité, permis, ordures, déneigement…) : 1 % du RBE — nouveau
   },
 
   construction: {

@@ -225,6 +225,65 @@ body { top: 0 !important; position: static !important; }
 .chart-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .chart-legend i { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
 
+/* ====================== Refonte UX ====================== */
+
+/* Cap rate sous la ville (item 4) */
+.cap-hint { font-family: var(--font-mono); font-size: 12px; color: var(--accent); margin-top: 7px; font-weight: 600; letter-spacing: 0.02em; }
+
+/* Export en haut, multi-formats (item 1) */
+.export-bar { margin-top: 0; }
+.export-bar .ghost { color: var(--muted); border-style: dashed; }
+.export-bar .ghost:hover { background: var(--cream); color: var(--ink); border-color: var(--ink); }
+
+/* Verdict (headline) plus gros + liseré coloré (item 2) */
+.verdict { font-size: 13px; padding: 8px 14px; font-weight: 600; }
+.headline.go { box-shadow: inset 5px 0 0 var(--success); }
+.headline.watch { box-shadow: inset 5px 0 0 var(--gold); }
+.headline.pass { box-shadow: inset 5px 0 0 var(--danger); }
+
+/* Recommandation colorée et marquée (item 2) */
+.reco { border-left-width: 5px; transition: background .2s, border-color .2s; }
+.reco.buy { border-left-color: var(--success); background: rgba(45,90,61,0.05); }
+.reco.reno { border-left-color: var(--gold); background: rgba(212,175,110,0.08); }
+.reco.pass { border-left-color: var(--danger); background: rgba(139,26,26,0.05); }
+.reco-badge { font-size: 22px; padding: 12px 22px; }
+
+/* Callouts clés : prix maximal + prêt retenu (items 7, 8) */
+.callouts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.callout { background: var(--ink); color: var(--cream); padding: 22px 24px; border: 1px solid var(--ink); }
+.callout#co-loan { background: var(--accent); border-color: var(--accent); }
+.co-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,240,230,0.72); }
+.co-value { font-family: var(--font-display); font-size: 46px; line-height: 1; margin-top: 10px; }
+.co-note { font-family: var(--font-mono); font-size: 11px; color: rgba(244,240,230,0.62); margin-top: 9px; line-height: 1.5; }
+
+/* Tooltips de définitions au survol (item 6) */
+.term { border-bottom: 1px dotted currentColor; cursor: help; position: relative; }
+.export-bar .term, button.term { border-bottom: none; }
+.term[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 0; top: calc(100% + 8px); z-index: 60; width: max-content; max-width: 280px; background: var(--ink); color: var(--cream); font-family: var(--font-body); font-size: 12px; line-height: 1.45; letter-spacing: 0; text-transform: none; font-weight: 400; padding: 10px 12px; border-radius: 4px; box-shadow: 0 8px 26px rgba(0,0,0,0.32); white-space: normal; pointer-events: none; }
+.term[data-tip]:hover::before { content: ""; position: absolute; left: 12px; top: calc(100% + 3px); border: 5px solid transparent; border-bottom-color: var(--ink); z-index: 61; }
+
+/* Champs « allumés » après normalisation SCHL (item 2) */
+@keyframes flashfield { 0% { background: var(--gold); border-color: var(--gold); color: var(--ink); } 100% { background: #fff; border-color: var(--line); } }
+.field input.flash { animation: flashfield 1.2s ease-out; }
+
+/* Taux « actualisés en direct » — flash sur les chiffres au refresh (item 1) */
+@keyframes flashrate { 0% { background: var(--gold); color: var(--ink); box-shadow: 0 0 0 3px var(--gold); } 70% { background: var(--gold); color: var(--ink); box-shadow: 0 0 0 3px var(--gold); } 100% { background: transparent; box-shadow: 0 0 0 3px transparent; } }
+.rateboard .rate-item b.flash-rate { animation: flashrate 1.5s ease-out; border-radius: 2px; }
+
+/* Highlight de la ligne courante — sensibilités (item 9) */
+.sens-table tbody tr.cur td { font-weight: 600; box-shadow: inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent); }
+.sens-table tbody tr.cur td:first-child { box-shadow: inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent), inset 3px 0 0 var(--accent); }
+.sens-table tbody tr.cur td:last-child { box-shadow: inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent), inset -3px 0 0 var(--accent); }
+
+/* Drapeaux rouges mis en évidence (item 2) */
+.flags-group h3 { display: flex; align-items: center; gap: 8px; }
+.flags-group.has-danger { box-shadow: inset 4px 0 0 var(--danger); }
+.flags-group.has-warning { box-shadow: inset 4px 0 0 var(--gold); }
+.flags-count { font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 11px; background: var(--cream-deep); color: var(--ink-soft); }
+.flags-group.has-danger .flags-count { background: var(--danger); color: var(--cream); }
+.flag-card.danger { background: rgba(139,26,26,0.05); }
+.flag-card .ft { font-size: 13px; }
+
 @media (max-width: 1100px) {
   .work { grid-template-columns: 1fr; gap: 30px; }
   .res-cols { grid-template-columns: 1fr; }
@@ -232,6 +291,7 @@ body { top: 0 !important; position: static !important; }
 @media (max-width: 560px) {
   .container { padding: 0 18px; }
   .field-row, .field-row-3 { grid-template-columns: 1fr; }
+  .callouts { grid-template-columns: 1fr; }
   .metrics { grid-template-columns: 1fr; }
   .metric:nth-child(odd) { border-right: none; }
   .price-grid { grid-template-columns: 1fr; }
