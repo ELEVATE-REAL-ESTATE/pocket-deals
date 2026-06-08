@@ -26,6 +26,7 @@ const irrTxt = (v, dp=1) => v===null ? 'n/d' : !isFinite(v) ? '> 999 %' : pct(v,
 // ---- Données de marché — chargées depuis market-data.js (source unique) ----
 const MD = MARKET_DATA;
 const CAP_BUCKETS = MD.capRates.regions;        // taux de cap par bucket (8)
+const VAL_BUCKETS = MD.valuation.byBucket;      // repères $/pi² & $/porte par bucket métro
 const RENT_REGIONS = MD.marketRents.regions;    // régions détaillées SCHL (135)
 const ASSETS  = MD.capRates.assetSpreads;
 const PROGRAMS = MD.programs.items;
@@ -228,16 +229,22 @@ function calc() {
   $('verdict').textContent = vt; $('verdict').className = 'verdict '+v;
   $('headline').className = 'headline '+v;
 
-  // Évaluation
-  $('m-door').textContent = compact(price/units);
-  $('n-door').textContent = `${units} unités`;
-  $('m-sqft').textContent = sqft>0 ? fmt(price/sqft,0) : '—';
+  // Évaluation — avec repères de marché ($/porte, $/pi²) par métro
+  const _rg = RENT_REGIONS[$('region').value];
+  const bench = VAL_BUCKETS[_rg && _rg.capBucket] || VAL_BUCKETS['mtl'];
+  const subjDoor = units > 0 ? price/units : 0;
+  $('m-door').textContent = compact(subjDoor);
+  $('n-door').textContent = `${units} log. · marché ${compact(bench.pricePerDoor)}`;
+  setDot('d-door', subjDoor <= bench.pricePerDoor ? 'good' : subjDoor <= bench.pricePerDoor*1.1 ? 'ok' : 'bad');
+  const subjSqft = sqft>0 ? price/sqft : 0;
+  $('m-sqft').textContent = sqft>0 ? fmt(subjSqft,0) : '—';
+  $('n-sqft').textContent = sqft>0 ? `marché ~${fmt(bench.pricePerSqft,0)} $/pi²` : 'superficie brute';
+  setDot('d-sqft', sqft<=0 ? 'ok' : subjSqft <= bench.pricePerSqft ? 'good' : subjSqft <= bench.pricePerSqft*1.1 ? 'ok' : 'bad');
   $('m-cap').textContent = pct(capRate);
   $('n-cap').textContent = `RBE ${compact(noi)}`;
   setDot('d-cap', capRate>=capMkt ? 'good' : capRate>=capMkt-0.005 ? 'ok' : 'bad');
   $('m-capmkt').textContent = pct(capMkt);
   $('n-capmkt').textContent = `${pct(capMkt-0.005,2)}–${pct(capMkt+0.005,2)}`;
-  const _rg = RENT_REGIONS[$('region').value];
   $('region-cap').textContent = `Cap marché ${pct(capMkt)}${_rg ? ' · ' + _rg.label : ''}`;
   $('m-implied').textContent = compact(impliedValue);
   const gap = impliedValue - price;

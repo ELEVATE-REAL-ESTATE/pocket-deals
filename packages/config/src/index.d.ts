@@ -94,6 +94,11 @@ export interface MarketData {
     regions: Record<string, LabeledCap>;
     assetSpreads: Record<string, LabeledSpread>;
   };
+  valuation: {
+    asOf: string;
+    source: string;
+    byBucket: Record<string, { pricePerSqft: number; pricePerDoor: number }>;
+  };
   marketRents: MarketRents;
 }
 

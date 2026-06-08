@@ -114,6 +114,26 @@ export const MARKET_DATA = {
     }
   },
 
+  /* -- Repères de VALORISATION multi-résidentiel à revenus, par bucket métro
+        (mêmes clés que capRates.regions). $/pi² de bâtiment brut et $/porte.
+        ⚠ Estimations INDICATIVES (fourchettes courtiers Colliers/CBRE/JLR/APCIQ,
+        cohérentes avec les cap rates) — à valider avec ton marché et à affiner par l'agent.
+        Le $/pi² vise l'immeuble à revenus, PAS le condo (qui est bien plus élevé). */
+  valuation: {
+    asOf: "2026-Q2",
+    source: "Estimations indicatives — multi-résidentiel à revenus (Colliers/CBRE/JLR/APCIQ). À affiner.",
+    byBucket: {
+      "mtl-prime": { pricePerSqft: 400, pricePerDoor: 320000 },
+      "mtl":       { pricePerSqft: 320, pricePerDoor: 255000 },
+      "mtl-sec":   { pricePerSqft: 285, pricePerDoor: 215000 },
+      "couronne":  { pricePerSqft: 295, pricePerDoor: 235000 },
+      "quebec":    { pricePerSqft: 265, pricePerDoor: 200000 },
+      "gatineau":  { pricePerSqft: 265, pricePerDoor: 205000 },
+      "sherb-tr":  { pricePerSqft: 230, pricePerDoor: 175000 },
+      "region":    { pricePerSqft: 195, pricePerDoor: 155000 }
+    }
+  },
+
   /* -- Loyers de marché SCHL par région détaillée (135 zones) + bucket de cap.
         Généré dans market-rents.js depuis l'Enquête sur les logements locatifs. */
   marketRents: MARKET_RENTS
