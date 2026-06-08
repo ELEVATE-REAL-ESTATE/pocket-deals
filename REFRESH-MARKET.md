@@ -56,6 +56,15 @@ Pour chaque bloc : consulter la/les source(s), extraire les chiffres, mettre à 
 - **Cadence** : **annuelle** — la SCHL publie l'ELL d'octobre vers **janvier-février**. Vérifier en début d'année
   s'il existe un millésime plus récent que `marketRents.asOf` ; sinon ne rien changer.
 
+### 1c. `valuation` — repères de valorisation $/pi² & $/porte par bucket métro
+- **But** : comparer le « Prix / pi² » et le « Prix / porte » du deal à un repère de marché par métro
+  (`valuation.byBucket[*].pricePerSqft`, `pricePerDoor` — mêmes clés que `capRates.regions`).
+- **Cible** : **multi-résidentiel à REVENUS** — surtout **pas** le condo (dont le $/pi² est bien plus élevé).
+- **Sources** : Colliers / CBRE / JLR / APCIQ (transactions plex & immeubles à revenus). Ces chiffres sont **peu
+  publiés** (les courtiers les détiennent) → rester **très conservateur** : n'ajuster qu'avec une source datée.
+  Garder la cohérence avec les cap rates (cap plus bas = $/pi² plus élevé). Bumper `valuation.asOf`.
+- **Cadence** : **trimestrielle** (avec les cap rates).
+
 ### 2. `programs` — paramètres SCHL / conventionnel (RPV, RCD, amortissement, prime)
 - **Sources** :
   - SCHL — MLI Select : https://www.cmhc-schl.gc.ca/professionals/project-funding-and-mortgage-financing/mortgage-loan-insurance/multi-unit-insurance/mliselect
