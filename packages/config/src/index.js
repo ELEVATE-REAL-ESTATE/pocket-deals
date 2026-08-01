@@ -15,7 +15,7 @@ import { MARKET_RENTS } from "./market-rents.js";
 export const MARKET_DATA = {
 
   meta: {
-    lastUpdated: "2026-05-29",
+    lastUpdated: "2026-08-01",
     note: "Repères de marché — à valider avec un courtier hypothécaire / prêteur avant toute offre."
   },
 
@@ -25,9 +25,9 @@ export const MARKET_DATA = {
     cmbWidgetUrl: "https://www.thefinancials.com/Widget.aspx?pid=GREENBIR&wid=0375108050&mode=js&width=0",
     cmbLabel: "CMB 5-Year",
     cmbSource: "GreenBirch Capital / theFinancials",
-    cmbSpread: 0.0035,
-    fallback: { policy: 0.0225, prime: 0.0445, goc5yr: 0.0310 },
-    fallbackAsOf: "2026-05-28",
+    cmbSpread: 0.0015,
+    fallback: { policy: 0.0225, prime: 0.0445, goc5yr: 0.0326 },
+    fallbackAsOf: "2026-07-31",
     spreads: {
       "conv":    { base: "goc5yr", spread: 0.0215 },
       "mli-std": { base: "cmb5yr", spread: 0.0140 },
