@@ -15,7 +15,7 @@ import { MARKET_RENTS } from "./market-rents.js";
 export const MARKET_DATA = {
 
   meta: {
-    lastUpdated: "2026-05-29",
+    lastUpdated: "2026-10-01",
     note: "Repères de marché — à valider avec un courtier hypothécaire / prêteur avant toute offre."
   },
 
@@ -26,8 +26,8 @@ export const MARKET_DATA = {
     cmbLabel: "CMB 5-Year",
     cmbSource: "GreenBirch Capital / theFinancials",
     cmbSpread: 0.0035,
-    fallback: { policy: 0.0225, prime: 0.0445, goc5yr: 0.0310 },
-    fallbackAsOf: "2026-05-28",
+    fallback: { policy: 0.0225, prime: 0.0445, goc5yr: 0.0324 },
+    fallbackAsOf: "2026-09-30",
     spreads: {
       "conv":    { base: "goc5yr", spread: 0.0215 },
       "mli-std": { base: "cmb5yr", spread: 0.0140 },
@@ -91,14 +91,14 @@ export const MARKET_DATA = {
   },
 
   capRates: {
-    asOf: "2025-Q4",
-    source: "Colliers (Canada Cap Rate Report Q4 2025), CBRE, Cushman & Wakefield",
+    asOf: "2026-Q2",
+    source: "Colliers (Canada Cap Rate Report Q2 2026), CBRE (Q2 2026 Canadian Cap Rates & Investment Insights), Cushman & Wakefield",
     regions: {
       "mtl-prime": { label:"Montréal — secteurs prime (centre, Plateau, Outremont)", baseCap:0.0425 },
       "mtl":       { label:"Montréal — île (général)",                                baseCap:0.0500 },
       "mtl-sec":   { label:"Montréal — secteurs secondaires / valeur ajoutée",        baseCap:0.0575 },
       "couronne":  { label:"Laval / Rive-Sud / Rive-Nord",                            baseCap:0.0550 },
-      "quebec":    { label:"Ville de Québec",                                         baseCap:0.0550 },
+      "quebec":    { label:"Ville de Québec",                                         baseCap:0.0525 },
       "gatineau":  { label:"Gatineau / Outaouais",                                    baseCap:0.0550 },
       "sherb-tr":  { label:"Sherbrooke / Trois-Rivières",                             baseCap:0.0600 },
       "region":    { label:"Régions (autres villes du Québec)",                       baseCap:0.0650 }
